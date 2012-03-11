@@ -27,10 +27,7 @@ def get_screen(url, ids, path):
     for id in ids:#crop regions for all given id or do nothing if error ocured
         try:
             elem = browser.find_element_by_id(id) 
-            elem_position = browser.execute_script('function getPosition(obj){ var topValue= 0,leftValue= 0;    while(obj){    leftValue+= obj.offsetLeft;    topValue+= obj.offsetTop;    obj= obj.offsetParent;    }finalvalue = leftValue + "," + topValue;    return finalvalue;}; return getPosition(document.getElementById("' + id + '"));')
-            elem_position_arr = elem_position.split(',')
-            position={'left':int(elem_position_arr[0]),'top': int(elem_position_arr[1])}
-            crop_screnshot(id, position, elem.size, dir)
+            crop_screnshot(id, elem.location, elem.size, dir)
         except:#do nothing if error ocured during croping or finding id 
             ids.remove(id)
     browser.close()
@@ -47,8 +44,8 @@ def crop_screnshot(id, position, size, path):
     @param size: size of  element of given id
     @param path: place where to store images
     '''
-    left = position['left']
-    top = position['top']
+    left = position['x']
+    top = position['y']
     right = left + size['width']
     down = top + size['height']
     box = (left, top, right, down) #box of croping region

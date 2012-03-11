@@ -1,0 +1,7 @@
+content helloworld jar:chrome/helloworld.jar!/content/
+overlay	chrome://browser/content/browser.xul	chrome://helloworld/content/overlay.xul
+
+locale helloworld en-US jar:chrome/helloworld.jar!/locale/en-US/
+
+skin helloworld classic/1.0 jar:chrome/helloworld.jar!/skin/
+style	chrome://global/content/customizeToolbar.xul	chrome://helloworld/skin/overlay.css

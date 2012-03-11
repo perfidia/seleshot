@@ -1,0 +1,9 @@
+content	seleshot content/
+overlay chrome://selenium-ide/content/selenium-ide-overlay.xul chrome://seleshot/content/extensions/extension-loader.xul
+overlay chrome://selenium-ide/content/selenium-ide-common.xul chrome://seleshot/content/view/optionsOverlay.xul
+overlay chrome://selenium-ide/content/selenium-ide.xul chrome://seleshot/content/view/toolbarOverlay.xul
+
+overlay chrome://selenium-ide/content/selenium-ide-sidebar.xul chrome://seleshot/content/view/sidebarToolbarOverlay.xul
+overlay chrome://selenium-ide/content/selenium-ide-overlay.xul chrome://seleshot/content/formats/format-loader.xul
+
+locale	seleshot	en-US	locale/en-US/

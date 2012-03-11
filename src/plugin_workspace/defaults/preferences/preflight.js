@@ -1,0 +1,1 @@
+pref("extensions.selenium-ide.seleshot.performseleshot",true);

@@ -1,10 +1,18 @@
-Parse Tree Generator
+SaleShot
 ====================
 
 Description
+Two main functions:
+- Grabing a screenshot of specified element(s) from website.
+- Parsing HTML to JSON or XML file (whole website body or just childNodes of specified element)
+Planed to run on Selenium IDE and Selenium Python Client as well.
+
 -----------
 
 TODO
+- Set up formatter that can be included in a .xpi file
+- Find way to export function to Selenieum Python Client (extend webdriver class?)
+- Add HTML parsing part
 
 Installation
 ------------
