@@ -41,9 +41,9 @@ TBD
 Authors
 -------
 
-    See AUTHORS file.
+See AUTHORS file.
 
 Licence
 -------
 
-TBD
+SeleShot is released under the X11 license (MIT license).
