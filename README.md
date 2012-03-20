@@ -1,4 +1,4 @@
-SaleShot
+SeleShot
 ====================
 
 Description
@@ -10,9 +10,9 @@ Planed to run on Selenium IDE and Selenium Python Client as well.
 -----------
 
 TODO
-- Set up formatter that can be included in a .xpi file
-- Find way to export function to Selenieum Python Client (extend webdriver class?)
-- Add HTML parsing part
+- Upgrade XML format.
+- Allow user to decide a root of html code (specific element or whole page)
+- add a possibility to get many elements screens and html code same time
 
 Installation
 ------------
@@ -30,7 +30,12 @@ Installation
 Getting started
 ---------------
 
-TBD
+#beelow  are Linux system compatibility examples
+get_screen("http://kinyen.pl","header", "C://", "xml") will save a header png image and header.json outerHtml code
+get_screen("http://kinyen.pl","//div[@id='header']", "C://", "json") will save a header png image and header.xml outerHtml code [element found by xpath]
+
+#Debuging run arguments can be provide like:
+-u http://kinyen.pl -i header -d C:// -s json
 
 Authors
 -------
