@@ -42,10 +42,9 @@ def pars(dom):
             if node.nodeType == node.TEXT_NODE:
                 doc = Document()
                 text = doc.createElement("text")
-                intext = doc.createTextNode( node.nodeValue)
+                textval = re.sub(r'[ \n\t]+', ' ', node.nodeValue)
+                intext = doc.createTextNode(textval)
                 text.appendChild(intext)
-                #print re.sub(' (?= )', "", node.nodeValue)
-                matchObj = re.match(r'[a-zA-Z0-9]+', node.nodeValue, re.IGNORECASE)
                 dom.replaceChild(text, node)
             else:
                 pars(node)
