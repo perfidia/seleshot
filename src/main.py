@@ -3,16 +3,12 @@
 '''
 Created on Apr 13, 2012
 
-@author: BA
+@author: Bartosz Alchimowicz
 '''
 
-#from seleshot import get_screen
+from seleshot import create
 
-from seleshot import screen
-print dir(screen)
-
-#get_screen("aaaa")
-#get_screen(url = "http://www.kinyen.pl")
-#get_screen(url = "www.kinyen.pl")
-#get_screen(url = "www.kinyen.pl/")
-#get_screen(url = "http://www.kinyen.pl", ids = ["content", "header"])
+if __name__ == '__main__':
+    s = create()
+    s.get_screen('http://www.kinyen.pl/')
+    s.close()

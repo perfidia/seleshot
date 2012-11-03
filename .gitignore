@@ -5,6 +5,7 @@
 
 *.egg
 *.egg-info
+*.png
 dist
 build
 
