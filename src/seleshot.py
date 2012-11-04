@@ -142,7 +142,7 @@ def create(driver = None):
         return driver
     elif isinstance(driver, WebDriver) == False and isinstance(driver, type) == True:
         # a class
-        # will create an instance and rerun ScreenShotBuilder to add get_screen function
+        # will create an instance and rerun create function to add get_screen function
 
         return create(driver())
     else:
