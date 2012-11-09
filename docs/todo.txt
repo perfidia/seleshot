@@ -2,3 +2,4 @@ TODO
 ====
 
 * store information about elements placed on webpage (df parameter)
+* test the creation of py package
