@@ -24,6 +24,12 @@ def create(driver = None):
 
         return ids
 
+    def check_xpaths(xpaths):
+        if xpaths == None:
+            xpaths = []
+
+        return xpaths
+
     def check_path(path):
         if path == None:
             path = os.getcwd()
@@ -83,17 +89,22 @@ def create(driver = None):
 
                 region.save(filename)
 
+    def get_xpaths(driver, basename, ids):
+        # TODO
+        pass
+
     class ScreenShot(object):
         def __init__(self, driver, path = None, df = None):
             self.driver = driver
             self.path = check_path(path)
             self.df = check_df(df)
 
-        def get_screen(self, url, ids = None):
+        def get_screen(self, url, ids = None, xpaths = None):
             # print "ScreenShot"
 
             url = check_url(url)
             ids = check_ids(ids)
+            xpaths = check_xpaths(xpaths)
 
             self.driver.get(url)
 
@@ -105,13 +116,31 @@ def create(driver = None):
             if ids:
                 get_ids(self.driver, basename, ids)
 
+            if xpaths:
+                get_xpaths(self.driver, basename, ids)
+
+        def get_data(self, url, conf = None, filename = None):
+            '''
+            Get information about elements on a web page.
+
+            @param url: web page address
+            @param conf: store only elements with ids if conf is in [None, "ID"]; store everything (ids and classes) if conf is in ["ALL"]
+            @param filename: a location of a file where to store collected data
+
+            @return: list of tuples with elements
+            '''
+
+            # TODO
+            pass
+
         def close(self):
             self.driver.close()
 
-    def get_screen(driver, ids = None, path = None, df = None):
+    def get_screen(driver, ids = None, xpaths = None, path = None, df = None):
         # print "WebDriver"
 
         ids = check_ids(ids)
+        xpaths = check_xpaths(xpaths)
         path = check_path(path)
         df = check_df(df)
         url = driver.current_url
@@ -123,6 +152,13 @@ def create(driver = None):
 
         if ids:
             get_ids(driver, basename, ids)
+
+        if xpaths:
+            get_xpaths(driver, basename, ids)
+
+    def get_data(driver, conf = None, filename = None):
+        # TODO
+        pass
 
     #########################
     #          body         #
@@ -152,9 +188,11 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-u', '--url', dest = "url",  help = "url to web page with protocol like http://", required = True)
     parser.add_argument('-i', '--ids', dest = "ids",  help = "list of id in page separated by space ", nargs='+', required = True)
+    parser.add_argument('-x', '--xpath', dest = "xpath",  help = "list of xpath in page separated by space", nargs='+')
     parser.add_argument('-d', '--path', dest = "path", help = "path to save directory; default as run script", default = ".")
-    # parser.add_argument('-s', '--set',  dest="set", help="choose a code's output [opt: xml, json]", default="xml")
+    parser.add_argument('-f', '--format', dest="format", help="choose a code's output [opt: xml, json]", default=None)
     args = parser.parse_args()
 
     s = create()
-    s.get_screen(args.url, args.ids, args.path)
+    s.get_screen(args.url, args.ids, args.xpath, args.path, args.format)
+    s.close()
