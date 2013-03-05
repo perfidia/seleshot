@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import re
 import os
 import string
 import argparse
@@ -67,10 +68,7 @@ def create(driver = None):
 
         for i in ids:
             try:
-                if i.count('/') == 0:
-                    web_element = driver.find_element_by_id(i)
-                else:
-                    web_element = driver.find_element_by_xpath(i)
+                web_element = driver.find_element_by_id(i)
             except NoSuchElementException, e:
                 web_element = None
 
@@ -89,9 +87,31 @@ def create(driver = None):
 
                 region.save(filename)
 
-    def get_xpaths(driver, basename, ids):
-        # TODO
-        pass
+    def get_xpaths(driver, basename, xpaths):
+        image = Image.open(basename + ".png")
+
+        for xpath in xpaths:
+            try:
+                web_elements = driver.find_elements_by_xpath(xpath)
+            except NoSuchElementException, e:
+                web_elements = None
+
+            if web_elements:
+                for i in range(len(web_elements)):
+                    location = web_elements[i].location
+                    size = web_elements[i].size
+                    left = location['x']
+                    right = left + size['width']
+                    top = location['y']
+                    down = top + size['height']
+                    box = (left, top, right, down) # box of region to crop
+
+                    region = image.crop(box)
+
+                    xpath= re.sub(r'[\\/:"*?<>|]+', "", xpath)
+                    filename = basename + "-" + translate(xpath)+"_"+str(i)+ ".png"
+
+                    region.save(filename)
 
     class ScreenShot(object):
         def __init__(self, driver, path = None, df = None):
@@ -117,7 +137,7 @@ def create(driver = None):
                 get_ids(self.driver, basename, ids)
 
             if xpaths:
-                get_xpaths(self.driver, basename, ids)
+                get_xpaths(self.driver, basename, xpaths)
 
         def get_data(self, url, conf = None, filename = None):
             '''
@@ -154,7 +174,7 @@ def create(driver = None):
             get_ids(driver, basename, ids)
 
         if xpaths:
-            get_xpaths(driver, basename, ids)
+            get_xpaths(driver, basename, xpaths)
 
     def get_data(driver, conf = None, filename = None):
         # TODO
