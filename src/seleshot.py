@@ -119,7 +119,7 @@ def create(driver = None):
             self.path = check_path(path)
             self.df = check_df(df)
 
-        def get_screen(self, url, ids = None, xpaths = None):
+        def get_screen(self, url, ids = None, xpaths = None, path = None, df = None):
             # print "ScreenShot"
 
             url = check_url(url)
