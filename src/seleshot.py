@@ -197,11 +197,8 @@ def create(driver = None):
 
     def save_webelements_to_file(webelements,file):
         file.write("[\n")
-        if webelements:
-            for i in range(len(webelements)-1):
-                file.write("\t" + str(webelements[i])+",\n")
-            lastTuple = webelements[len(webelements)-1]
-            file.write("\t" + str(lastTuple)+"\n")
+        for i in range(len(webelements)):
+            file.write("\t" + str(webelements[i])+",\n")
         file.write("]\n")
 
 
