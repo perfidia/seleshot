@@ -42,6 +42,31 @@ class Test(unittest.TestCase):
         for screen in screenShootFiles:
             assert screen in files
 
+    def test_get_data(self):
+        s = seleshot.create()
+        d = s.get_data('http://www.kinyen.pl/', 'ALL', 'dump.txt')
+        assert d != []
+        l = []
+        # create a list of xpaths of elements without an id
+        for i in d:
+            if len(i) == 5:
+                l.append(i[0])
+        s.get_screen('http://www.kinyen.pl/', xpaths = l)
+        s.close()
+
+    def test_get_data_conf(self):
+        s = seleshot.create()
+#        website without elements with 'id' property
+        d = s.get_data('http://fis.cs.put.poznan.pl/fis/')
+        assert d == []
+        d = s.get_data(url='http://fis.cs.put.poznan.pl/fis/', filename='dump1.txt')
+        assert d == []
+        d = s.get_data('http://fis.cs.put.poznan.pl/fis/',"ID",'dump2.txt')
+        assert d == []
+        d = s.get_data('http://fis.cs.put.poznan.pl/fis/',"ALL",'dump3.txt')
+        assert d != []
+        s.close()
+
     def tearDown(self):
         self.driver.close()
 
