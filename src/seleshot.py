@@ -120,38 +120,11 @@ def create(driver = None):
             self.df = check_df(df)
 
         def get_screen(self, url, ids = None, xpaths = None, path = None, df = None):
-            # print "ScreenShot"
-
-            url = check_url(url)
-            ids = check_ids(ids)
-            xpaths = check_xpaths(xpaths)
-
             self.driver.get(url)
-
-            basename = get_basename(self.path, url)
-
-            filename = basename + ".png"
-            self.driver.save_screenshot(filename)
-
-            if ids:
-                get_ids(self.driver, basename, ids)
-
-            if xpaths:
-                get_xpaths(self.driver, basename, xpaths)
-
+            get_screen(self.driver,ids,xpaths,path,df)
         def get_data(self, url, conf = None, filename = None):
-            '''
-            Get information about elements on a web page.
-
-            @param url: web page address
-            @param conf: store only elements with ids if conf is in [None, "ID"]; store everything (ids and classes) if conf is in ["ALL"]
-            @param filename: a location of a file where to store collected data
-
-            @return: list of tuples with elements
-            '''
-
-            # TODO
-            pass
+            self.driver.get(url)
+            get_data(self.driver,conf,filename)
 
         def close(self):
             self.driver.close()
