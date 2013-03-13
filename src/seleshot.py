@@ -116,6 +116,7 @@ def create(driver = None):
                     region.save(filename)
 
     class ScreenShot(object):
+
         def __init__(self, driver, path = None, df = None):
             self.driver = driver
             self.path = check_path(path)
@@ -123,10 +124,11 @@ def create(driver = None):
 
         def get_screen(self, url, ids = None, xpaths = None, path = None, df = None):
             self.driver.get(url)
-            get_screen(self.driver,ids,xpaths,path,df)
+            get_screen(self.driver, ids, xpaths, path, df)
+
         def get_data(self, url, conf = None, filename = None):
             self.driver.get(url)
-            return get_data(self.driver,conf,filename)
+            return get_data(self.driver, conf,filename)
 
         def close(self):
             self.driver.close()
@@ -154,16 +156,16 @@ def create(driver = None):
     def get_data(driver, conf = None, filename = None):
         root_list = driver.find_elements_by_xpath("*")
         all_elements = []
-        all_elements_as_tree = get_elements_recursive(root_list[0],all_elements,conf)
+        all_elements_as_tree = get_elements_recursive(root_list[0], all_elements, conf)
 
         if not filename:
             filename = "default_dump.txt"
-        file = open(os.getcwd()+"\\" + filename, "w")
-        save_webelements_to_file(all_elements,file)
+        file = open(os.path.join(os.getcwd(), filename), "w")
+        save_webelements_to_file(all_elements, file)
         file.close()
         return all_elements
 
-    def get_elements_recursive(webelement,all_elements,conf,current_xpath = "/html"):
+    def get_elements_recursive(webelement, all_elements, conf, current_xpath = "/html"):
         return_elements = []
         children_list = webelement.find_elements_by_xpath("*")
         element_numbers= {child.tag_name: 0 for child in children_list}
@@ -173,29 +175,29 @@ def create(driver = None):
         else:
             for child in children_list:
                 element_numbers[child.tag_name] += 1
-                xpath =str(current_xpath) + "/" + str(child.tag_name)+ "["+str(element_numbers[child.tag_name])+"]"
-                create_new_tuple(child,xpath,all_elements,conf)
-                return_elements.append(get_elements_recursive(child,all_elements,conf,xpath))
+                xpath =str(current_xpath) + "/" + str(child.tag_name) + "[" + str(element_numbers[child.tag_name]) + "]"
+                create_new_tuple(child, xpath, all_elements, conf)
+                return_elements.append(get_elements_recursive(child, all_elements, conf, xpath))
             return return_elements
 
-    def create_new_tuple(webelement,xpath,all_elements,conf):
+    def create_new_tuple(webelement, xpath, all_elements, conf):
         if webelement.get_attribute("id") and (conf in ["ID",None]):
-            newTuple = xpath,webelement.location["x"],webelement.location["y"],webelement.size["width"],webelement.size["height"],str(webelement.get_attribute("id"))
+            newTuple = xpath, webelement.location["x"], webelement.location["y"], webelement.size["width"], webelement.size["height"], str(webelement.get_attribute("id"))
             all_elements.append(newTuple)
         elif webelement.get_attribute("id") and webelement.get_attribute("class") and (conf in ["ALL"]):
-            newTuple = xpath,webelement.location["x"],webelement.location["y"],webelement.size["width"],webelement.size["height"],str(webelement.get_attribute("id")),str(webelement.get_attribute("class"))
+            newTuple = xpath, webelement.location["x"], webelement.location["y"], webelement.size["width"], webelement.size["height"], str(webelement.get_attribute("id")), str(webelement.get_attribute("class"))
             all_elements.append(newTuple)
         elif webelement.get_attribute("id") and (conf in ["ALL"]):
-            newTuple = xpath,webelement.location["x"],webelement.location["y"],webelement.size["width"],webelement.size["height"],str(webelement.get_attribute("id"))
+            newTuple = xpath, webelement.location["x"], webelement.location["y"], webelement.size["width"], webelement.size["height"], str(webelement.get_attribute("id"))
             all_elements.append(newTuple)
         elif webelement.get_attribute("class") and (conf in ["ALL"]):
-            newTuple = xpath,webelement.location["x"],webelement.location["y"],webelement.size["width"],webelement.size["height"],str(webelement.get_attribute("class"))
+            newTuple = xpath, webelement.location["x"], webelement.location["y"], webelement.size["width"], webelement.size["height"], str(webelement.get_attribute("class"))
             all_elements.append(newTuple)
         elif (conf in ["ALL"]):
-            newTuple = xpath,webelement.location["x"],webelement.location["y"],webelement.size["width"],webelement.size["height"]
+            newTuple = xpath, webelement.location["x"], webelement.location["y"], webelement.size["width"], webelement.size["height"]
             all_elements.append(newTuple)
 
-    def save_webelements_to_file(webelements,file):
+    def save_webelements_to_file(webelements, file):
         file.write("[\n")
         for i in range(len(webelements)):
             file.write("\t" + str(webelements[i])+",\n")

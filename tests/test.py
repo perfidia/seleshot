@@ -5,28 +5,26 @@ Created on Oct 31, 2012
 '''
 
 import unittest
-from src import seleshot
+import seleshot
 from selenium import webdriver
 import os
 
 class Test(unittest.TestCase):
     def setUp(self):
-        self.driver = seleshot.create(webdriver.Firefox())
+        self.s = seleshot.create()
 
-    def testSeleShot(self):
-        screenShootFiles = ["www.python.org.png",
+    def test_seleshot(self):
+        screenshoot_files = ["www.python.org.png",
                             "www.python.org-searchbox.png"]
-        driver = self.driver
-        driver.get("http://www.python.org")
-
-        driver.get_screen()
-        driver.get_screen(ids = ["searchbox"])
+        s = self.s
+        s.get_screen("http://www.python.org")
+        s.get_screen(url="http://www.python.org", ids = ["searchbox"])
         files = os.listdir(os.getcwd())
-        for screen in screenShootFiles:
+        for screen in screenshoot_files:
             assert screen in files
 
-    def testGetXpaths(self):
-        screenShootFiles = ["www.python.org-.[@id='logo']_0.png",
+    def test_get_xpaths(self):
+        screenshoot_files = ["www.python.org-.[@id='logo']_0.png",
                             "www.python.org-.[@id='menu']ulli_0.png",
                             "www.python.org-.[@id='menu']ulli_1.png",
                             "www.python.org-.[@id='menu']ulli_2.png",
@@ -35,15 +33,14 @@ class Test(unittest.TestCase):
                             "www.python.org-.[@id='menu']ulli_5.png",
                             "www.python.org-.[@id='menu']ulli_6.png",
                             "www.python.org-.[@id='menu']ulli_7.png"]
-        driver = self.driver
-        driver.get("http://www.python.org")
-        driver.get_screen(xpaths=[".//*[@id='logo']",".//*[@id='menu']/ul/li"])
+        s = self.s
+        s.get_screen(url="http://www.python.org", xpaths=[".//*[@id='logo']", ".//*[@id='menu']/ul/li"])
         files = os.listdir(os.getcwd())
-        for screen in screenShootFiles:
+        for screen in screenshoot_files:
             assert screen in files
 
     def test_get_data(self):
-        s = seleshot.create()
+        s = self.s
         d = s.get_data('http://www.kinyen.pl/', 'ALL', 'dump.txt')
         assert d != []
         l = []
@@ -55,20 +52,20 @@ class Test(unittest.TestCase):
         s.close()
 
     def test_get_data_conf(self):
-        s = seleshot.create()
+        s = self.s
 #        website without elements with 'id' property
         d = s.get_data('http://fis.cs.put.poznan.pl/fis/')
         assert d == []
         d = s.get_data(url='http://fis.cs.put.poznan.pl/fis/', filename='dump1.txt')
         assert d == []
-        d = s.get_data('http://fis.cs.put.poznan.pl/fis/',"ID",'dump2.txt')
+        d = s.get_data('http://fis.cs.put.poznan.pl/fis/', "ID", 'dump2.txt')
         assert d == []
-        d = s.get_data('http://fis.cs.put.poznan.pl/fis/',"ALL",'dump3.txt')
+        d = s.get_data('http://fis.cs.put.poznan.pl/fis/', "ALL", 'dump3.txt')
         assert d != []
         s.close()
 
     def tearDown(self):
-        self.driver.close()
+        self.s.close()
 
 if __name__ == "__main__":
     unittest.main()
