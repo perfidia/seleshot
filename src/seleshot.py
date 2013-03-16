@@ -160,9 +160,9 @@ def create(driver = None):
 
         if not filename:
             filename = "default_dump.txt"
-        file = open(os.path.join(os.getcwd(), filename), "w")
-        save_webelements_to_file(all_elements, file)
-        file.close()
+        fd = open(os.path.join(os.getcwd(), filename), "w")
+        save_webelements_to_file(all_elements, fd)
+        fd.close()
         return all_elements
 
     def get_elements_recursive(webelement, all_elements, conf, current_xpath = "/html"):
@@ -185,7 +185,7 @@ def create(driver = None):
             newTuple = xpath, webelement.location["x"], webelement.location["y"], webelement.size["width"], webelement.size["height"], str(webelement.get_attribute("id"))
             all_elements.append(newTuple)
         elif webelement.get_attribute("id") and webelement.get_attribute("class") and (conf in ["ALL"]):
-            newTuple = xpath, webelement.location["x"], webelement.location["y"], webelement.size["width"], webelement.size["height"], str(webelement.get_attribute("id")), str(webelement.get_attribute("class"))
+            newTuple = xpath, webelement.location["x"], webelement.location["y"], webelement.size["width"], webelement.size["height"], str(webelement.get_attribute("class"), str(webelement.get_attribute("id")))
             all_elements.append(newTuple)
         elif webelement.get_attribute("id") and (conf in ["ALL"]):
             newTuple = xpath, webelement.location["x"], webelement.location["y"], webelement.size["width"], webelement.size["height"], str(webelement.get_attribute("id"))
@@ -197,11 +197,11 @@ def create(driver = None):
             newTuple = xpath, webelement.location["x"], webelement.location["y"], webelement.size["width"], webelement.size["height"]
             all_elements.append(newTuple)
 
-    def save_webelements_to_file(webelements, file):
-        file.write("[\n")
+    def save_webelements_to_file(webelements, fd):
+        fd.write("[\n")
         for i in range(len(webelements)):
-            file.write("\t" + str(webelements[i])+",\n")
-        file.write("]\n")
+            fd.write("\t" + str(webelements[i])+",\n")
+        fd.write("]\n")
 
 
 
@@ -236,9 +236,9 @@ if __name__ == '__main__':
     parser.add_argument('-i', '--ids', dest = "ids",  help = "list of id in page separated by space ", nargs='+', required = True)
     parser.add_argument('-x', '--xpath', dest = "xpath",  help = "list of xpath in page separated by space", nargs='+')
     parser.add_argument('-d', '--path', dest = "path", help = "path to save directory; default as run script", default = ".")
-    parser.add_argument('-f', '--format', dest="format", help="choose a code's output [opt: xml, json]", default=None)
+#    parser.add_argument('-f', '--format', dest="format", help="choose a code's output [opt: xml, json]", default=None)
     args = parser.parse_args()
 
     s = create()
-    s.get_screen(args.url, args.ids, args.xpath, args.path, args.format)
+    s.get_screen(args.url, args.ids, args.xpath, args.path)
     s.close()
