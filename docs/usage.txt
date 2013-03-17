@@ -18,7 +18,7 @@ Webdriver
 
     .. code-block:: bash
 
-        python seleshot.py -u http://www.python.org/ -x .//*[@id='menu']/ul/li
+        python seleshot.py -u http://www.python.org/ -x ".//*[@id='menu']/ul/li"
 
 Webdriver Remote
 ------------
@@ -35,5 +35,5 @@ To use selenium-server-standalone you have to provide url where the server is lo
 
     .. code-block:: bash
 
-        python seleshot.py -u http://www.python.org/ -x .//*[@id='menu']/ul/li -r http://127.0.0.1:4444/wd/hub
+        python seleshot.py -u http://www.python.org/ -x ".//*[@id='menu']/ul/li" -r http://127.0.0.1:4444/wd/hub
 
