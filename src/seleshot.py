@@ -236,12 +236,21 @@ def create(driver = None):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-u', '--url', dest = "url",  help = "url to web page with protocol like http://", required = True)
-    parser.add_argument('-i', '--ids', dest = "ids",  help = "list of id in page separated by space ", nargs='+', required = True)
+    parser.add_argument('-i', '--ids', dest = "ids",  help = "list of id in page separated by space ", nargs='+')
     parser.add_argument('-x', '--xpath', dest = "xpath",  help = "list of xpath in page separated by space", nargs='+')
     parser.add_argument('-d', '--path', dest = "path", help = "path to save directory; default as run script", default = ".")
+    parser.add_argument('-r', '--remoteUrl', dest = "remoteUrl", help = "url of selenium-server-standalone")
 #    parser.add_argument('-f', '--format', dest="format", help="choose a code's output [opt: xml, json]", default=None)
     args = parser.parse_args()
 
-    s = create()
-    s.get_screen(args.url, args.ids, args.xpath, args.path)
+    if args.remoteUrl:
+        s = create(webdriver.Remote(command_executor=args.remoteUrl,desired_capabilities={
+            "browserName": "firefox",
+            "platform": "ANY",
+            }))
+        s.get(args.url)
+        s.get_screen(args.ids, args.xpath, args.path)
+    else:
+        s = create()
+        s.get_screen(args.url, args.ids, args.xpath, args.path)
     s.close()

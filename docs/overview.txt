@@ -1,0 +1,14 @@
+Overview
+============
+
+Sometimes it is required to take a screen shot not of the whole web page but only a part of
+it. Such a screen shot can contains for example a single button or form.
+
+Seleshot possibilities
+
+* Support for taking screenshots of elements with id
+* Support for taking screenshots of elements with specified xpath
+* Support for remote webdriver
+
+
+

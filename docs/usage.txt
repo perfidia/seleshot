@@ -1,0 +1,39 @@
+Usage
+============
+
+It automatically takes screen of the whole website. If there is no *id* or *xpath* specified there will be just one screen of the whole website
+
+Screenshot of elements on website http://www.python.org/
+
+Webdriver
+------------
+
+* Screen of searchbox (element with attribute id = *searchbox*)
+
+    .. code-block:: bash
+
+        python seleshot.py -u http://www.python.org/ -i searchbox
+
+* Screen of menu elements - we do not have to specify all of them separately, just provide proper *xpath*
+
+    .. code-block:: bash
+
+        python seleshot.py -u http://www.python.org/ -x .//*[@id='menu']/ul/li
+
+Webdriver Remote
+------------
+
+To use selenium-server-standalone you have to provide url where the server is located
+
+* Screen of searchbox (element with attribute id = *searchbox*) but webdriver is located on *selenium-server-standalone*
+
+    .. code-block:: bash
+
+        python seleshot.py -u http://www.python.org/ -i searchbox -r http://127.0.0.1:4444/wd/hub
+
+* Screen of menu elements with specified *xpath* and url to *selenium-server-standalone*
+
+    .. code-block:: bash
+
+        python seleshot.py -u http://www.python.org/ -x .//*[@id='menu']/ul/li -r http://127.0.0.1:4444/wd/hub
+
