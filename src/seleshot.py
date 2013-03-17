@@ -156,7 +156,7 @@ def create(driver = None):
     def get_data(driver, conf = None, filename = None):
         root_list = driver.find_elements_by_xpath("*")
         all_elements = []
-        all_elements_as_tree = get_elements_recursive(root_list[0], all_elements, conf)
+        get_elements_recursive(root_list[0], all_elements, conf)
 
         if not filename:
             filename = "default_dump.txt"
@@ -185,7 +185,7 @@ def create(driver = None):
             newTuple = xpath, webelement.location["x"], webelement.location["y"], webelement.size["width"], webelement.size["height"], str(webelement.get_attribute("id"))
             all_elements.append(newTuple)
         elif webelement.get_attribute("id") and webelement.get_attribute("class") and (conf in ["ALL"]):
-            newTuple = xpath, webelement.location["x"], webelement.location["y"], webelement.size["width"], webelement.size["height"], str(webelement.get_attribute("class"), str(webelement.get_attribute("id")))
+            newTuple = xpath, webelement.location["x"], webelement.location["y"], webelement.size["width"], webelement.size["height"], str(webelement.get_attribute("class")), str(webelement.get_attribute("id"))
             all_elements.append(newTuple)
         elif webelement.get_attribute("id") and (conf in ["ALL"]):
             newTuple = xpath, webelement.location["x"], webelement.location["y"], webelement.size["width"], webelement.size["height"], str(webelement.get_attribute("id"))
@@ -220,6 +220,9 @@ def create(driver = None):
 
         if "get_screen" not in dir(driver):
             driver.get_screen = MethodType(get_screen, driver, driver.__class__)
+
+        if "get_data" not in dir(driver):
+            driver.get_data = MethodType(get_data, driver, driver.__class__)
 
         return driver
     elif isinstance(driver, WebDriver) == False and isinstance(driver, type) == True:
