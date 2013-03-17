@@ -35,3 +35,6 @@ class Test(unittest.TestCase):
 
     def tearDown(self):
         self.s1.close()
+
+if __name__ == "__main__":
+    unittest.main()
