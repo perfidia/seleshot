@@ -24,7 +24,7 @@ def create(driver = None):
         if not isinstance(url, basestring):
             raise ValueError("i don't understand your url :(")
 
-        if args.url[:7] != "http://":
+        if url[:7] != "http://":
             raise ValueError("http protocol is required")
 
         return url
