@@ -8,7 +8,7 @@ Contents:
 .. toctree::
 	:maxdepth: 2
 
-	overview
-	installation
-	usage
-
+	_static/overview
+	_static/installation
+	_static/usage
+	_static/todo
