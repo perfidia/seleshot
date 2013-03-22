@@ -1,8 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+'''
+Created on May 5, 2011
+
+@author: Radoslaw Palczynski, Grzegorz Bilewski et al.
+'''
+
 import re
 import os
+import sys
 import string
 import argparse
 import Image
@@ -15,7 +22,10 @@ def create(driver = None):
     # hiding everything from the world, buahaha ^_^
     def check_url(url):
         if not isinstance(url, basestring):
-            raise Exception("i don't understand your url :(")
+            raise ValueError("i don't understand your url :(")
+
+        if args.url[:7] != "http://":
+            raise ValueError("http protocol is required")
 
         return url
 
@@ -72,6 +82,8 @@ def create(driver = None):
             except NoSuchElementException, e:
                 web_element = None
 
+            # print web_element
+
             if web_element:
                 location = web_element.location
                 size = web_element.size
@@ -96,6 +108,8 @@ def create(driver = None):
             except NoSuchElementException, e:
                 web_elements = None
 
+            # print web_elements
+
             if web_elements:
                 for i in range(len(web_elements)):
                     if not web_elements[i].is_displayed() or web_elements[i].size['width'] == 0 or web_elements[i].size['height'] ==0:
@@ -116,13 +130,14 @@ def create(driver = None):
                     region.save(filename)
 
     class ScreenShot(object):
-
         def __init__(self, driver, path = None, df = None):
             self.driver = driver
             self.path = check_path(path)
             self.df = check_df(df)
 
         def get_screen(self, url, ids = None, xpaths = None, path = None, df = None):
+            url = check_url(url)
+
             self.driver.get(url)
             get_screen(self.driver, ids, xpaths, path, df)
 
@@ -160,9 +175,11 @@ def create(driver = None):
 
         if not filename:
             filename = "default_dump.txt"
+
         fd = open(os.path.join(os.getcwd(), filename), "w")
         save_webelements_to_file(all_elements, fd)
         fd.close()
+
         return all_elements
 
     def get_elements_recursive(webelement, all_elements, conf, current_xpath = "/html"):
@@ -199,12 +216,11 @@ def create(driver = None):
 
     def save_webelements_to_file(webelements, fd):
         fd.write("[\n")
+
         for i in range(len(webelements)):
             fd.write("\t" + str(webelements[i])+",\n")
+
         fd.write("]\n")
-
-
-
 
     #########################
     #          body         #
@@ -234,23 +250,29 @@ def create(driver = None):
         raise Exception("there is something strange with the driver, will you check it?")
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-u', '--url', dest = "url",  help = "url to web page with protocol like http://", required = True)
-    parser.add_argument('-i', '--ids', dest = "ids",  help = "list of id in page separated by space ", nargs='+')
-    parser.add_argument('-x', '--xpath', dest = "xpath",  help = "list of xpath in page separated by space", nargs='+')
-    parser.add_argument('-d', '--path', dest = "path", help = "path to save directory; default as run script", default = ".")
+    parser = argparse.ArgumentParser(description='Takes a screen shot of a web page.')
+    parser.add_argument('-u', '--url',   dest = "url",   help = "url to web page (including http protocol)", required = True)
+    parser.add_argument('-i', '--ids',   dest = "ids",   help = "list of ids on the web page separated by a space character", nargs='+')
+    parser.add_argument('-x', '--xpath', dest = "xpath", help = "list of xpath on the web page separated by a space character", nargs='+')
+    parser.add_argument('-d', '--path',  dest = "path",  help = "path to save directory; default as run script", default = ".")
     parser.add_argument('-r', '--remoteUrl', dest = "remoteUrl", help = "url of selenium-server-standalone")
-#    parser.add_argument('-f', '--format', dest="format", help="choose a code's output [opt: xml, json]", default=None)
+    # parser.add_argument('-f', '--format', dest="format", help="choose a code's output [opt: xml, json]", default=None)
+
     args = parser.parse_args()
 
+    if args.url[:7] != "http://":
+        print sys.argv[0] + ": error: argument -u/--url requires http protocol"
+        sys.exit(2)
+
     if args.remoteUrl:
-        s = create(webdriver.Remote(command_executor=args.remoteUrl,desired_capabilities={
-            "browserName": "firefox",
-            "platform": "ANY",
-            }))
+        s = create(webdriver.Remote(command_executor=args.remoteUrl, desired_capabilities = {
+                "browserName": "firefox",
+                "platform": "ANY",
+        }))
         s.get(args.url)
         s.get_screen(args.ids, args.xpath, args.path)
     else:
         s = create()
         s.get_screen(args.url, args.ids, args.xpath, args.path)
+
     s.close()
