@@ -14,11 +14,23 @@ Webdriver
 
         python seleshot.py -u http://www.python.org/ -i searchbox
 
+* Screen of many elements ( 2 elements with id attributes: *content-panel* and *left-panel* ) The list of ids is separated by space:
+
+    .. code-block:: bash
+
+            python seleshot.py -u http://www.kinyen.pl/ -i content-panel left-panel
+
 * Screen of menu elements - we do not have to specify all of them separately, just provide proper *xpath*
 
     .. code-block:: bash
 
         python seleshot.py -u http://www.python.org/ -x ".//*[@id='menu']/ul/li"
+
+* Screen of menu elements - we can get specific elements, we have to provide several *xpath*
+
+    .. code-block:: bash
+
+        python seleshot.py -u http://www.python.org/ -x ".//*[@id='menu']/ul/li[1]" ".//*[@id='menu']/ul/li[2]"
 
 Webdriver Remote
 ------------

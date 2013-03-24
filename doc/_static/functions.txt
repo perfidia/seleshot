@@ -1,0 +1,26 @@
+Functions
+============
+
+The ScreenShoot object contains 3 public functions
+
+* *get_screen(self, url, ids = None, xpaths = None, path = None, df = None)*
+
+    Parameters:
+
+    - *url* - url to the webpage (including http protocol)
+    - *ids* - list of ids on the web page
+    - *xpaths* - list of xpath on the web page
+    - *path* - pave to save directory
+    - *df* - format, not supported
+
+* *get_data(self, url, conf = None, filename = None)*
+
+    Parameters:
+
+    - *url* - url to the webpage (including http protocol)
+    - *conf* - configuration of storing elements, store only elements with ids if conf is in [None, "ID"]; store everything (ids and classes) if conf is in ["ALL"]
+    - *filename* - a location of a file where to store collected data
+
+* *close(self)*
+
+    Should be called in the end. It close the webdriver.

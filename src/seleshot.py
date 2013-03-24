@@ -124,6 +124,7 @@ def create(driver = None):
 
                     region = image.crop(box)
 
+                    xpath= re.sub(r'[/]+', "_", xpath)
                     xpath= re.sub(r'[\\/:"*?<>|]+', "", xpath)
                     filename = basename + "-" + translate(xpath)+"_"+str(i)+ ".png"
 

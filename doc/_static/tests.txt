@@ -1,0 +1,19 @@
+Tests
+============
+
+Tests are located in 2 files
+
+* test.py
+* testRemoteWebdriver.py
+
+To run tests located in first file *test.py* you have to type the following command
+
+   .. code-block:: bash
+
+        python test.py
+
+Tests located in the second file *testRemoteWebdriver.py* required specific environment. You have to run selenium-server-standalone. Read the installation page to run selenium-server-standalone. Then type the following command:
+
+   .. code-block:: bash
+
+         python testRemoteWebdriver.py

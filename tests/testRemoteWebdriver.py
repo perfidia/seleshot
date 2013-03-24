@@ -20,16 +20,16 @@ class Test(unittest.TestCase):
         s1 = self.s1                   # remote firefox webdriver
         s2 = create(webdriver.Firefox) # firefox webdriver
 
-        s1.get('http://www.kinyen.pl/')
-        s2.get('http://www.kinyen.pl/')
+        s1.get('http://fis.cs.put.poznan.pl')
+        s2.get('http://fis.cs.put.poznan.pl')
 
         data1 = s1.get_data(conf='ALL', filename='dump_firefox_remote.txt')
         data2 = s2.get_data(conf='ALL', filename='dump_firefox.txt')
 
-        assert len(data1) == len(data2)
+        self.assertEqual(len(data1), len(data2))
 
         for i in range(len(data1)):
-            assert data1[i] == data2[i]
+            self.assertEqual(data1[i], data2[i])
 
         s2.close()
 
