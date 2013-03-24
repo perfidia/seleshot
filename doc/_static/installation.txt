@@ -18,4 +18,4 @@ The following libraries are required:
 
         .. code-block:: bash
 
-            java -jar selenium-server-standalone-<version>.jar
+            java -jar selenium-server-standalone-2.31.0.jar

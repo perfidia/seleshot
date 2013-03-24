@@ -11,6 +11,6 @@ Contents:
 	_static/overview
 	_static/installation
 	_static/usage
-	_static/functions
+	_static/api
 	_static/tests
 	_static/todo

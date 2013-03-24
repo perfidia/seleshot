@@ -1,4 +1,4 @@
-Functions
+API
 ============
 
 The ScreenShoot object contains 3 public functions
@@ -10,7 +10,7 @@ The ScreenShoot object contains 3 public functions
     - *url* - url to the webpage (including http protocol)
     - *ids* - list of ids on the web page
     - *xpaths* - list of xpath on the web page
-    - *path* - pave to save directory
+    - *path* - path to save directory
     - *df* - format, not supported
 
 * *get_data(self, url, conf = None, filename = None)*

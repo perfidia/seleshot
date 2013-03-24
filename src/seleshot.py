@@ -137,12 +137,32 @@ def create(driver = None):
             self.df = check_df(df)
 
         def get_screen(self, url, ids = None, xpaths = None, path = None, df = None):
+            '''
+            Get specified screen(s)
+
+            @param url: url to the webpage (including http protocol)
+            @param ids: list of ids on the web page
+            @param xpaths: list of xpath on the web page
+            @param path: path to save directory
+            @param df: format, not supported
+
+            @return: void
+            '''
             url = check_url(url)
 
             self.driver.get(url)
             get_screen(self.driver, ids, xpaths, path, df)
 
         def get_data(self, url, conf = None, filename = None):
+            '''
+            Get information about elements on a web page.
+
+            @param url: url to the webpage (including http protocol)
+            @param conf: configuration of storing elements, store only elements with ids if conf is in [None, "ID"]; store everything (ids and classes) if conf is in ["ALL"]
+            @param filename: a location of a file where to store collected data
+
+            @return: list of tuples with elements
+            '''
             self.driver.get(url)
             return get_data(self.driver, conf,filename)
 

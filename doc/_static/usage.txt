@@ -49,3 +49,27 @@ To use selenium-server-standalone you have to provide url where the server is lo
 
         python seleshot.py -u http://www.python.org/ -x ".//*[@id='menu']/ul/li" -r http://127.0.0.1:4444/wd/hub
 
+
+Calling methods from code
+------------
+
+* Create ScreenShoot class object
+
+    .. code-block:: bash
+
+        s = create()
+
+* Getting screen
+
+    .. code-block:: bash
+
+        s.get_screen(url="http://www.python.org", ids = ["searchbox"])
+
+* Closing webdriver
+
+    .. code-block:: bash
+
+        s.close()
+
+
+
