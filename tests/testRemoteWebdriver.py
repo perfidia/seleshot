@@ -3,21 +3,21 @@ from seleshot import create
 from selenium import webdriver
 
 class Test(unittest.TestCase):
-
     def setUp(self):
-        self.s1 = create(webdriver.Remote(desired_capabilities={
+        self.s = create(webdriver.Remote(desired_capabilities={
             "browserName": "firefox",
             "platform": "ANY",
-            }))
+        }))
+
+    def tearDown(self):
+        self.s.close()
 
     def test_remote_webdriver(self):
-        s = self.s1
-        s.get('http://www.kinyen.pl/')
-        s.get_screen(["content", "//div[@id='header']"])
+        self.s.get('http://www.kinyen.pl/')
+        self.s.get_screen(["content", "//div[@id='header']"])
 
     def test_get_data(self):
-
-        s1 = self.s1                   # remote firefox webdriver
+        s1 = self.s                    # remote firefox webdriver
         s2 = create(webdriver.Firefox) # firefox webdriver
 
         s1.get('http://fis.cs.put.poznan.pl')
@@ -28,13 +28,10 @@ class Test(unittest.TestCase):
 
         self.assertEqual(len(data1), len(data2))
 
-        for i in range(len(data1)):
-            self.assertEqual(data1[i], data2[i])
+        for i, j in zip(data1, data2):
+            self.assertEqual(i, j)
 
         s2.close()
-
-    def tearDown(self):
-        self.s1.close()
 
 if __name__ == "__main__":
     unittest.main()
