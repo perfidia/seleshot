@@ -35,6 +35,6 @@ nosetests.xml
 .pydevproject
 .settings
 
-docs/_build
+doc/_build
 
 *.png

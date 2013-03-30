@@ -1,11 +1,12 @@
 Usage
-============
+=====
 
-It automatically takes screen of the whole website. If there is no *id* or *xpath* specified there will be just one screen of the whole website
+Below a number of usage examples are presented.
 
-Screenshot of elements on website http://www.python.org/
+Please note that SeleShot always takes screen of a whole website,
+even if *id* or *xpath* is specified.
 
-Webdriver
+Command line
 ------------
 
 * Screen of searchbox (element with attribute id = *searchbox*)
@@ -14,26 +15,59 @@ Webdriver
 
         python seleshot.py -u http://www.python.org/ -i searchbox
 
-* Screen of many elements ( 2 elements with id attributes: *content-panel* and *left-panel* ) The list of ids is separated by space:
+* Screens of two elements (*content-panel* and *left-panel*), ids is separated by space
 
     .. code-block:: bash
 
-            python seleshot.py -u http://www.kinyen.pl/ -i content-panel left-panel
+        python seleshot.py -u http://www.kinyen.pl/ -i content-panel left-panel
 
-* Screen of menu elements - we do not have to specify all of them separately, just provide proper *xpath*
+* Screen of menu elements by using *xpath*
 
     .. code-block:: bash
 
         python seleshot.py -u http://www.python.org/ -x ".//*[@id='menu']/ul/li"
 
-* Screen of menu elements - we can get specific elements, we have to provide several *xpath*
+* Multiple screens of menu elements using *xpath* (elements are separated by a space)
 
     .. code-block:: bash
 
         python seleshot.py -u http://www.python.org/ -x ".//*[@id='menu']/ul/li[1]" ".//*[@id='menu']/ul/li[2]"
 
+Standalone application
+----------------------
+
+The code below shows how to create a simple application which takes a screen shot of a webpage.
+
+.. code-block:: python
+
+    from seleshot import create
+
+    s = create()
+    s.get_screen(url="http://www.python.org", ids = ["searchbox"])
+    s.close()
+
+Selenium tests
+--------------
+
+The code below shows how to create a test which takes a screen shot of a webpage.
+
+.. code-block:: python
+
+    from seleshot import create
+
+    class Test(unittest.TestCase):
+        def setUp(self):
+            self.s = seleshot.create()
+
+        def tearDown(self):
+            self.s.close()
+
+        def test_get_data(self):
+            self.s.get_data('http://www.kinyen.pl/', 'ALL', 'dump.txt')
+            self.s.get_screen('http://www.kinyen.pl/', xpaths = l)
+
 Webdriver Remote
-------------
+----------------
 
 To use selenium-server-standalone you have to provide url where the server is located
 
@@ -48,28 +82,3 @@ To use selenium-server-standalone you have to provide url where the server is lo
     .. code-block:: bash
 
         python seleshot.py -u http://www.python.org/ -x ".//*[@id='menu']/ul/li" -r http://127.0.0.1:4444/wd/hub
-
-
-Calling methods from code
-------------
-
-* Create ScreenShoot class object
-
-    .. code-block:: bash
-
-        s = create()
-
-* Getting screen
-
-    .. code-block:: bash
-
-        s.get_screen(url="http://www.python.org", ids = ["searchbox"])
-
-* Closing webdriver
-
-    .. code-block:: bash
-
-        s.close()
-
-
-

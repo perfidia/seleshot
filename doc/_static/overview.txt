@@ -6,6 +6,6 @@ it. Such a screen shot can contains for example a single button or form.
 
 Seleshot possibilities:
 
-* Support for taking screenshots of elements with a specified id
-* Support for taking screenshots of elements with a specified xpath
+* Support for taking screenshot(s) of elements with a specified id(s)
+* Support for taking screenshot(s) of elements with a specified xpath(s)
 * Support for remote webdriver

@@ -1,26 +1,26 @@
 API
-============
+===
 
-The ScreenShoot object contains 3 public functions
+ScreenShot class contains the following functions:
 
-* *get_screen(self, url, ids = None, xpaths = None, path = None, df = None)*
+.. function:: get_screen(url, ids = None, xpaths = None, path = None, df = None)
 
-    Parameters:
+    Get specified screen(s)
 
-    - *url* - url to the webpage (including http protocol)
-    - *ids* - list of ids on the web page
-    - *xpaths* - list of xpath on the web page
-    - *path* - path to save directory
-    - *df* - format, not supported
+    :param url: url to the webpage (including http protocol)
+    :param ids: list of ids on the web page
+    :param xpaths: list of xpath on the web page
+    :param path: path to save directory
+    :param df: not supported
 
-* *get_data(self, url, conf = None, filename = None)*
+.. function:: get_data(url, conf = None, filename = None)
 
-    Parameters:
+    Get information about elements on a web page.
 
-    - *url* - url to the webpage (including http protocol)
-    - *conf* - configuration of storing elements, store only elements with ids if conf is in [None, "ID"]; store everything (ids and classes) if conf is in ["ALL"]
-    - *filename* - a location of a file where to store collected data
+    :param url: url to the webpage (including http protocol)
+    :param conf: configuration of storing elements, store only elements with ids if conf is in [None, "ID"]; store everything (ids and classes) if conf is in ["ALL"]
+    :param filename: a location of a file where to store collected data
 
-* *close(self)*
+.. function:: close()
 
-    Should be called in the end. It close the webdriver.
+    Close webdriver.
