@@ -2,4 +2,5 @@ TODO
 ====
 
 * store information about elements placed on webpage in json (df parameter)
-* test the creation of egg package
+* test the creation of egg package in Windows
+* ln seleshot.py /usr/bin/seleshot during instalation
