@@ -73,6 +73,19 @@ def create(driver = None):
 
         return retval
 
+    def get_filename(xpath, basename, web_element, index, ):
+        xpath= re.sub(r'[/]+', "_", xpath)
+        if xpath[-1] == '*':
+            xpath= re.sub(r'[\\/:"*?<>|]+', "", xpath)
+            filename = basename + "-" + translate(xpath)+web_element.tag_name + "["+str(index+1)+ "].png"
+        elif xpath[-1] == ']':
+            xpath= re.sub(r'[\\/:"*?<>|]+', "", xpath)
+            filename = basename + "-" + translate(xpath)+ ".png"
+        else:
+            xpath= re.sub(r'[\\/:"*?<>|]+', "", xpath)
+            filename = basename + "-" + translate(xpath)+ "["+str(index+1)+ "].png"
+        return filename
+
     def get_ids(driver, basename, ids):
         image = Image.open(basename + ".png")
 
@@ -124,10 +137,7 @@ def create(driver = None):
 
                     region = image.crop(box)
 
-                    xpath= re.sub(r'[/]+', "_", xpath)
-                    xpath= re.sub(r'[\\/:"*?<>|]+', "", xpath)
-                    filename = basename + "-" + translate(xpath)+"_"+str(i)+ ".png"
-
+                    filename = get_filename(xpath,basename,web_elements[i],i)
                     region.save(filename)
 
     class ScreenShot(object):

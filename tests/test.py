@@ -28,15 +28,15 @@ class Test(unittest.TestCase):
             self.assertIn(screen, files)
 
     def test_get_xpaths(self):
-        screenshoot_files = ["www.python.org-._[@id='logo']_0.png",
-                             "www.python.org-._[@id='menu']_ul_li_0.png",
-                             "www.python.org-._[@id='menu']_ul_li_1.png",
-                             "www.python.org-._[@id='menu']_ul_li_2.png",
-                             "www.python.org-._[@id='menu']_ul_li_3.png",
-                             "www.python.org-._[@id='menu']_ul_li_4.png",
-                             "www.python.org-._[@id='menu']_ul_li_5.png",
-                             "www.python.org-._[@id='menu']_ul_li_6.png",
-                             "www.python.org-._[@id='menu']_ul_li_7.png"]
+        screenshoot_files = ["www.python.org-._[@id='logo'].png",
+                             "www.python.org-._[@id='menu']_ul_li[1].png",
+                             "www.python.org-._[@id='menu']_ul_li[2].png",
+                             "www.python.org-._[@id='menu']_ul_li[3].png",
+                             "www.python.org-._[@id='menu']_ul_li[4].png",
+                             "www.python.org-._[@id='menu']_ul_li[5].png",
+                             "www.python.org-._[@id='menu']_ul_li[6].png",
+                             "www.python.org-._[@id='menu']_ul_li[7].png",
+                             "www.python.org-._[@id='menu']_ul_li[8].png"]
 
         self.s.get_screen(url="http://www.python.org", xpaths=[".//*[@id='logo']", ".//*[@id='menu']/ul/li"])
         files = os.listdir(os.getcwd())
@@ -78,7 +78,7 @@ class Test(unittest.TestCase):
     def test_wrong_xpath(self):
         # xpath to nothing
         screenshoot_files= ["www.python.org.png",
-                            "www.python.org-._[@id='menu']_ul_li_span_0.png"]
+                            "www.python.org-._[@id='menu']_ul_li_span[1].png"]
         self.s.get_screen(url="http://www.python.org", xpaths = [".//*[@id='menu']/ul/li/span"])
         files = os.listdir(os.getcwd())
         self.assertIn(screenshoot_files[0], files)
@@ -88,8 +88,8 @@ class Test(unittest.TestCase):
         screenshoot_files= ["www.python.org.png",
                             "www.python.org-utility-menu.png",
                             "www.python.org-left-hand-navigation.png",
-                            "www.python.org-._[@id='left-hand-navigation']_h4[1]_a_0.png",
-                            "www.python.org-._[@id='content']_h1_0.png"]
+                            "www.python.org-._[@id='left-hand-navigation']_h4[1]_a[1].png",
+                            "www.python.org-._[@id='content']_h1[1].png"]
         ids = ["utility-menu","left-hand-navigation"]
         xpaths = [".//*[@id='content']/h1",".//*[@id='left-hand-navigation']/h4[1]/a"]
 
