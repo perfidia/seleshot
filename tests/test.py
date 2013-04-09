@@ -21,7 +21,7 @@ class Test(unittest.TestCase):
                              "www.python.org-searchbox.png"]
 
         self.s.get_screen("http://www.python.org")
-        self.s.get_screen(url="http://www.python.org", ids = ["searchbox"])
+        self.s.get_screen(url = "http://www.python.org", ids = ["searchbox"])
         files = os.listdir(os.getcwd())
 
         for screen in screenshoot_files:
@@ -38,7 +38,7 @@ class Test(unittest.TestCase):
                              "www.python.org-._[@id='menu']_ul_li[7].png",
                              "www.python.org-._[@id='menu']_ul_li[8].png"]
 
-        self.s.get_screen(url="http://www.python.org", xpaths=[".//*[@id='logo']", ".//*[@id='menu']/ul/li"])
+        self.s.get_screen(url = "http://www.python.org", xpaths = [".//*[@id='logo']", ".//*[@id='menu']/ul/li"])
         files = os.listdir(os.getcwd())
 
         for screen in screenshoot_files:
@@ -59,7 +59,7 @@ class Test(unittest.TestCase):
         # website without elements with 'id' property
         d = self.s.get_data('http://fis.cs.put.poznan.pl/fis/')
         self.assertEqual(d, [])
-        d = self.s.get_data(url='http://fis.cs.put.poznan.pl/fis/', filename='dump1.txt')
+        d = self.s.get_data(url = 'http://fis.cs.put.poznan.pl/fis/', filename = 'dump1.txt')
         self.assertEqual(d, [])
         d = self.s.get_data('http://fis.cs.put.poznan.pl/fis/', "ID", 'dump2.txt')
         self.assertEqual(d, [])
@@ -70,34 +70,40 @@ class Test(unittest.TestCase):
         # the page does not have this id
         screenshoot_files = ["www.python.org.png",
                              "www.python.org-aasdfasdf.png"]
-        self.s.get_screen(url="http://www.python.org", ids = ["aasdfasdf"])
+        self.s.get_screen(url = "http://www.python.org", ids = ["aasdfasdf"])
         files = os.listdir(os.getcwd())
         self.assertIn(screenshoot_files[0], files)
         self.assertNotIn(screenshoot_files[1], files)
 
     def test_wrong_xpath(self):
         # xpath to nothing
-        screenshoot_files= ["www.python.org.png",
-                            "www.python.org-._[@id='menu']_ul_li_span[1].png"]
-        self.s.get_screen(url="http://www.python.org", xpaths = [".//*[@id='menu']/ul/li/span"])
+        screenshoot_files = ["www.python.org.png",
+                             "www.python.org-._[@id='menu']_ul_li_span[1].png"]
+        self.s.get_screen(url = "http://www.python.org", xpaths = [".//*[@id='menu']/ul/li/span"])
         files = os.listdir(os.getcwd())
         self.assertIn(screenshoot_files[0], files)
         self.assertNotIn(screenshoot_files[1], files)
 
     def test_get_id_and_xpath(self):
-        screenshoot_files= ["www.python.org.png",
-                            "www.python.org-utility-menu.png",
-                            "www.python.org-left-hand-navigation.png",
-                            "www.python.org-._[@id='left-hand-navigation']_h4[1]_a[1].png",
-                            "www.python.org-._[@id='content']_h1[1].png"]
-        ids = ["utility-menu","left-hand-navigation"]
-        xpaths = [".//*[@id='content']/h1",".//*[@id='left-hand-navigation']/h4[1]/a"]
+        screenshoot_files = ["www.python.org.png",
+                             "www.python.org-utility-menu.png",
+                             "www.python.org-left-hand-navigation.png",
+                             "www.python.org-._[@id='left-hand-navigation']_h4[1]_a[1].png",
+                             "www.python.org-._[@id='content']_h1[1].png"]
+        ids = ["utility-menu", "left-hand-navigation"]
+        xpaths = [".//*[@id='content']/h1", ".//*[@id='left-hand-navigation']/h4[1]/a"]
 
-        self.s.get_screen(url="http://www.python.org", ids = ids, xpaths = xpaths)
+        self.s.get_screen(url = "http://www.python.org", ids = ids, xpaths = xpaths)
         files = os.listdir(os.getcwd())
 
         for screen in screenshoot_files:
             self.assertIn(screen, files)
+
+    def test_add_outline_to_element(self):
+        xpaths = [".//*[@id='content']/h1", ".//*[@id='left-hand-navigation']/h4[1]/a"]
+        ids = ["utility-menu", "left-hand-navigation"]
+        self.s.get_screen(url = "http://www.python.org", ids = ids, xpaths = xpaths, color = True)
+
 
 if __name__ == "__main__":
     unittest.main()
