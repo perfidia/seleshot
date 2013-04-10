@@ -175,9 +175,25 @@ def create(driver = None):
             web_elements += get_web_elements_by_xpath(driver,xpath)
 
         for web_element in web_elements:
+            if frame and arrow:
+                driver.execute_script("var element = arguments[0]; element.style.color = arguments[1]; element.style.outline = '2px dashed red';" +
+                                      "arrow = document.createElement('span'); arrow.style.width = '38px'; arrow.style.height = '45px';"+
+                                      "arrow.style.background = 'url(http://www.elhostel.pl/images/arrow.png) no-repeat';"+
+                                      "arrow.style.display = 'inline-block'; element.appendChild(arrow);"+
+                                      "label = document.createElement('span'); label.style.color = 'red';"+
+                                      "label.innerHTML = arguments[2]; element.insertBefore(label,element.firstChild);",
+                    web_element,color,text)
             if frame:
                 driver.execute_script("var element = arguments[0]; element.style.color = arguments[1];" +
                                       " element.style.outline = '2px dashed red';label = document.createElement('span'); label.style.color = 'red';"+
+                                      "label.innerHTML = arguments[2]; element.insertBefore(label,element.firstChild);",
+                    web_element,color,text)
+            elif arrow:
+                driver.execute_script("var element = arguments[0]; element.style.color = arguments[1];" +
+                                      "arrow = document.createElement('span'); arrow.style.width = '38px'; arrow.style.height = '45px';"+
+                                      "arrow.style.background = 'url(http://www.elhostel.pl/images/arrow.png) no-repeat';"+
+                                      "arrow.style.display = 'inline-block'; element.appendChild(arrow);"+
+                                      "label = document.createElement('span'); label.style.color = 'red';"+
                                       "label.innerHTML = arguments[2]; element.insertBefore(label,element.firstChild);",
                     web_element,color,text)
             else:
