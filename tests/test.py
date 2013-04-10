@@ -99,11 +99,37 @@ class Test(unittest.TestCase):
         for screen in screenshoot_files:
             self.assertIn(screen, files)
 
-    def test_add_outline_to_element(self):
-        xpaths = [".//*[@id='content']/h1", ".//*[@id='left-hand-navigation']/h4[1]/a"]
-        ids = ["utility-menu", "left-hand-navigation"]
-        self.s.get_screen(url = "http://www.python.org", ids = ids, xpaths = xpaths, color = True)
+    def test_color_web_element(self):
+        files = os.listdir(os.getcwd())
+        self.s.highlight_web_elements(url = "http://www.python.org", xpaths = [".//*[@id='intro']/p[1]/strong"], color = 'green')
+        current_files = os.listdir(os.getcwd())
+        self.assertEquals(len(files) + 1, len(current_files))
 
+        self.s.highlight_web_elements(url = "http://www.python.org", ids = ["submit"], color = 'green')
+        current_files = os.listdir(os.getcwd())
+        self.assertEquals(len(files) + 2, len(current_files))
+
+        self.s.highlight_web_elements(url = "http://www.python.org", xpaths = [".//*[@id='intro']/p[1]/strong"], ids = ["submit"], color = 'green')
+        current_files = os.listdir(os.getcwd())
+        self.assertEquals(len(files) + 3, len(current_files))
+
+    def test_frame_around_web_element(self):
+        files = os.listdir(os.getcwd())
+        self.s.highlight_web_elements(url = "http://www.python.org", xpaths = [".//*[@id='menu']/ul/li"], frame=True)
+        current_files = os.listdir(os.getcwd())
+        self.assertEquals(len(files) + 1, len(current_files))
+
+    def test_label_next_to_web_element(self):
+        files = os.listdir(os.getcwd())
+        self.s.highlight_web_elements(url = "http://www.python.org", ids=["utility-menu"], frame=True, text='EXAMPLE')
+        current_files = os.listdir(os.getcwd())
+        self.assertEquals(len(files) + 1, len(current_files))
+
+    def test_color_and_frame(self):
+        files = os.listdir(os.getcwd())
+        self.s.highlight_web_elements(url = "http://www.python.org", xpaths=[".//*[@id='left-hand-navigation']/h4/a",".//*[@id='menu']/ul/li/a"], frame=True, color='yellow')
+        current_files = os.listdir(os.getcwd())
+        self.assertEquals(len(files) + 1, len(current_files))
 
 if __name__ == "__main__":
     unittest.main()

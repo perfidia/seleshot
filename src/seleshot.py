@@ -73,7 +73,21 @@ def create(driver = None):
 
         return retval
 
-    def get_filename(xpath, basename, web_element, index, ):
+    def get_next_filename(filename):
+        highlighted_files = []
+        files = os.listdir(os.getcwd())
+        for f in files:
+            if f.find('highlighted') != -1:
+                highlighted_files.append(f)
+        highlighted_files.sort(key = lambda s: len(s))
+        if highlighted_files:
+            indexOfNumber = highlighted_files[-1].find('[')+1
+            filename += "-highlighted[" + str(int(highlighted_files[-1][indexOfNumber:-5])+1)+"].png"
+        else:
+            filename += "-highlighted[1].png";
+        return filename
+
+    def get_filename(xpath, basename, web_element, index):
         xpath = re.sub(r'[/]+', "_", xpath)
         if xpath[-1] == '*':
             xpath = re.sub(r'[\\/:"*?<>|]+', "", xpath)
@@ -86,18 +100,36 @@ def create(driver = None):
             filename = basename + "-" + translate(xpath) + "[" + str(index + 1) + "].png"
         return filename
 
-    def get_ids(driver, basename, ids, color):
+    def get_web_element_by_id(driver, i):
+        result = []
+        try:
+            web_element = driver.find_element_by_id(i)
+            if not web_element.is_displayed() or web_element.size['width'] == 0 or web_element.size['height'] == 0:
+                return result
+            result.append(web_element)
+        except NoSuchElementException, e:
+            pass
+        return result
+
+
+    def get_web_elements_by_xpath(driver, xpath):
+        result = []
+        try:
+            web_elements = driver.find_elements_by_xpath(xpath)
+        except NoSuchElementException, e:
+            web_elements = None
+        if web_elements:
+            for web_element in web_elements:
+                if not web_element.is_displayed() or web_element.size['width'] == 0 or web_element.size['height'] == 0:
+                    continue
+                result.append(web_element)
+        return result
+
+    def get_ids(driver, basename, ids):
         image = Image.open(basename + ".png")
-
         for i in ids:
-            try:
-                web_element = driver.find_element_by_id(i)
-            except NoSuchElementException, e:
-                web_element = None
-
-            # print web_element
-
-            if web_element:
+            web_elements = get_web_element_by_id(driver,i)
+            for web_element in web_elements:
                 location = web_element.location
                 size = web_element.size
                 left = location['x']
@@ -110,38 +142,51 @@ def create(driver = None):
                 filename = basename + "-" + translate(i) + ".png"
                 region.save(filename)
 
-                if color:
-                    driver.execute_script("var element = arguments[0]; element.style.outline = '2px dashed red';", web_element)
-
-    def get_xpaths(driver, basename, xpaths, color):
+    def get_xpaths(driver, basename, xpaths):
         image = Image.open(basename + ".png")
-
         for xpath in xpaths:
-            try:
-                web_elements = driver.find_elements_by_xpath(xpath)
-            except NoSuchElementException, e:
-                web_elements = None
+            web_elements = get_web_elements_by_xpath(driver,xpath)
+            for i in xrange(len(web_elements)):
+                location = web_elements[i].location
+                size = web_elements[i].size
+                left = location['x']
+                right = left + size['width']
+                top = location['y']
+                down = top + size['height']
+                box = (left, top, right, down) # box of region to crop
 
-            # print web_elements
+                region = image.crop(box)
+                filename = get_filename(xpath, basename, web_elements[i], i)
+                region.save(filename)
 
-            if web_elements:
-                for i in xrange(len(web_elements)):
-                    if not web_elements[i].is_displayed() or web_elements[i].size['width'] == 0 or web_elements[i].size['height'] == 0:
-                        continue
-                    location = web_elements[i].location
-                    size = web_elements[i].size
-                    left = location['x']
-                    right = left + size['width']
-                    top = location['y']
-                    down = top + size['height']
-                    box = (left, top, right, down) # box of region to crop
 
-                    region = image.crop(box)
-                    filename = get_filename(xpath, basename, web_elements[i], i)
-                    region.save(filename)
+    def highlight_web_elements(driver, url, ids = None, xpaths = None, color = '', frame = False, text = '', arrow = False):
+        ids = check_ids(ids)
+        xpaths = check_xpaths(xpaths)
+        path = os.getcwd()
+        url = driver.current_url
+        basename = get_basename(path, url)
+        filename = get_next_filename(basename)
 
-                    if color:
-                        driver.execute_script("var element = arguments[0]; element.style.outline = '2px dashed red';", web_elements[i])
+        web_elements = []
+        for i in ids:
+            web_elements += get_web_element_by_id(driver,i)
+        for xpath in xpaths:
+            web_elements += get_web_elements_by_xpath(driver,xpath)
+
+        for web_element in web_elements:
+            if frame:
+                driver.execute_script("var element = arguments[0]; element.style.color = arguments[1];" +
+                                      " element.style.outline = '2px dashed red';label = document.createElement('span'); label.style.color = 'red';"+
+                                      "label.innerHTML = arguments[2]; element.insertBefore(label,element.firstChild);",
+                    web_element,color,text)
+            else:
+                driver.execute_script("var element = arguments[0]; element.style.color = arguments[1]; label = document.createElement('span'); label.style.color = 'red';"+
+                                      "label.innerHTML = arguments[2]; element.insertBefore(label,element.firstChild);",
+                    web_element,color,text)
+
+
+        driver.save_screenshot(filename)
 
     class ScreenShot(object):
         def __init__(self, driver, path = None, df = None):
@@ -149,7 +194,7 @@ def create(driver = None):
             self.path = check_path(path)
             self.df = check_df(df)
 
-        def get_screen(self, url, ids = None, xpaths = None, path = None, df = None, color = False):
+        def get_screen(self, url, ids = None, xpaths = None, path = None, df = None):
             '''
             Get specified screen(s)
 
@@ -158,14 +203,13 @@ def create(driver = None):
             @param xpaths: list of xpath on the web page
             @param path: path to save directory
             @param df: format, not supported
-            @param color: boolean value indicating if to color specified elements
 
             @return: void
             '''
             url = check_url(url)
 
             self.driver.get(url)
-            get_screen(self.driver, ids, xpaths, path, df, color)
+            get_screen(self.driver, ids, xpaths, path, df)
 
         def get_data(self, url, conf = None, filename = None):
             '''
@@ -177,13 +221,31 @@ def create(driver = None):
 
             @return: list of tuples with elements
             '''
+            url = check_url(url)
             self.driver.get(url)
             return get_data(self.driver, conf, filename)
+
+        def highlight_web_elements(self, url, ids = None, xpaths = None, color = '', frame = False, text = '', arrow = False):
+            '''
+            Highlight specified webelements
+
+            @param url: url to the webpage (including http protocol)
+            @param ids: list of ids on the web page
+            @param xpaths: list of xpath on the web pag
+            @param color: specified webelement color
+            @param frame: boolean value indicating if to draw a frame around the webelement
+            @param text: optional text which would be draw next to the highlighted webelement
+            @param arrow: boolean value indicating if to draw an arrow next to the webelement
+
+            '''
+            url = check_url(url)
+            self.driver.get(url)
+            highlight_web_elements(self.driver,url,ids,xpaths,color,frame,text,arrow)
 
         def close(self):
             self.driver.close()
 
-    def get_screen(driver, ids = None, xpaths = None, path = None, df = None, color = False):
+    def get_screen(driver, ids = None, xpaths = None, path = None, df = None):
         # print "WebDriver"
 
         ids = check_ids(ids)
@@ -196,13 +258,10 @@ def create(driver = None):
         driver.save_screenshot(filename)
 
         if ids:
-            get_ids(driver, basename, ids, color)
+            get_ids(driver, basename, ids)
 
         if xpaths:
-            get_xpaths(driver, basename, xpaths, color)
-
-        if color:
-            driver.save_screenshot(filename)
+            get_xpaths(driver, basename, xpaths)
 
     def get_data(driver, conf = None, filename = None):
         root_list = driver.find_elements_by_xpath("*")
