@@ -81,8 +81,8 @@ def create(driver = None):
                 highlighted_files.append(f)
         highlighted_files.sort(key = lambda s: len(s))
         if highlighted_files:
-            indexOfNumber = highlighted_files[-1].find('[')+1
-            filename += "-highlighted[" + str(int(highlighted_files[-1][indexOfNumber:-5])+1)+"].png"
+            indexOfNumber = highlighted_files[-1].find('[') + 1
+            filename += "-highlighted[" + str(int(highlighted_files[-1][indexOfNumber:-5]) + 1) + "].png"
         else:
             filename += "-highlighted[1].png";
         return filename
@@ -128,7 +128,7 @@ def create(driver = None):
     def get_ids(driver, basename, ids):
         image = Image.open(basename + ".png")
         for i in ids:
-            web_elements = get_web_element_by_id(driver,i)
+            web_elements = get_web_element_by_id(driver, i)
             for web_element in web_elements:
                 location = web_element.location
                 size = web_element.size
@@ -145,7 +145,7 @@ def create(driver = None):
     def get_xpaths(driver, basename, xpaths):
         image = Image.open(basename + ".png")
         for xpath in xpaths:
-            web_elements = get_web_elements_by_xpath(driver,xpath)
+            web_elements = get_web_elements_by_xpath(driver, xpath)
             for i in xrange(len(web_elements)):
                 location = web_elements[i].location
                 size = web_elements[i].size
@@ -170,39 +170,74 @@ def create(driver = None):
 
         web_elements = []
         for i in ids:
-            web_elements += get_web_element_by_id(driver,i)
+            web_elements += get_web_element_by_id(driver, i)
         for xpath in xpaths:
-            web_elements += get_web_elements_by_xpath(driver,xpath)
+            web_elements += get_web_elements_by_xpath(driver, xpath)
 
         for web_element in web_elements:
             if frame and arrow:
                 driver.execute_script("var element = arguments[0]; element.style.color = arguments[1]; element.style.outline = '2px dashed red';" +
-                                      "arrow = document.createElement('span'); arrow.style.width = '38px'; arrow.style.height = '45px';"+
-                                      "arrow.style.background = 'url(http://www.elhostel.pl/images/arrow.png) no-repeat';"+
-                                      "arrow.style.display = 'inline-block'; element.appendChild(arrow);"+
-                                      "label = document.createElement('span'); label.style.color = 'red';"+
+                                      "arrow = document.createElement('span'); arrow.style.width = '38px'; arrow.style.height = '45px';" +
+                                      "arrow.style.background = 'url(http://www.elhostel.pl/images/arrow.png) no-repeat';" +
+                                      "arrow.style.display = 'inline-block'; element.appendChild(arrow);" +
+                                      "label = document.createElement('span'); label.style.color = 'red';" +
                                       "label.innerHTML = arguments[2]; element.insertBefore(label,element.firstChild);",
-                    web_element,color,text)
+                    web_element, color, text)
             if frame:
                 driver.execute_script("var element = arguments[0]; element.style.color = arguments[1];" +
-                                      " element.style.outline = '2px dashed red';label = document.createElement('span'); label.style.color = 'red';"+
+                                      " element.style.outline = '2px dashed red';label = document.createElement('span'); label.style.color = 'red';" +
                                       "label.innerHTML = arguments[2]; element.insertBefore(label,element.firstChild);",
-                    web_element,color,text)
+                    web_element, color, text)
             elif arrow:
                 driver.execute_script("var element = arguments[0]; element.style.color = arguments[1];" +
-                                      "arrow = document.createElement('span'); arrow.style.width = '38px'; arrow.style.height = '45px';"+
-                                      "arrow.style.background = 'url(http://www.elhostel.pl/images/arrow.png) no-repeat';"+
-                                      "arrow.style.display = 'inline-block'; element.appendChild(arrow);"+
-                                      "label = document.createElement('span'); label.style.color = 'red';"+
+                                      "arrow = document.createElement('span'); arrow.style.width = '38px'; arrow.style.height = '45px';" +
+                                      "arrow.style.background = 'url(http://www.elhostel.pl/images/arrow.png) no-repeat';" +
+                                      "arrow.style.display = 'inline-block'; element.appendChild(arrow);" +
+                                      "label = document.createElement('span'); label.style.color = 'red';" +
                                       "label.innerHTML = arguments[2]; element.insertBefore(label,element.firstChild);",
-                    web_element,color,text)
+                    web_element, color, text)
             else:
-                driver.execute_script("var element = arguments[0]; element.style.color = arguments[1]; label = document.createElement('span'); label.style.color = 'red';"+
+                driver.execute_script("var element = arguments[0]; element.style.color = arguments[1]; label = document.createElement('span'); label.style.color = 'red';" +
                                       "label.innerHTML = arguments[2]; element.insertBefore(label,element.firstChild);",
-                    web_element,color,text)
-
+                    web_element, color, text)
 
         driver.save_screenshot(filename)
+
+    def zoom_in(driver, ids = None, xpaths = None, zoom_factor = 2):
+        ids = check_ids(ids)
+        xpaths = check_xpaths(xpaths)
+        path = os.getcwd()
+        url = driver.current_url
+        basename = get_basename(path, url)
+
+        web_elements = []
+        for i in ids:
+            web_elements += get_web_element_by_id(driver, i)
+        for xpath in xpaths:
+            web_elements += get_web_elements_by_xpath(driver, xpath)
+
+        if len(web_elements) != 1:
+            raise ValueError("You have to provide one element to zoom in!")
+
+        filename = get_filename(xpath, basename + '-zoomed', web_elements[0], 0)
+        driver.save_screenshot(filename)
+        image = Image.open(filename)
+        location = web_elements[0].location
+        size = web_elements[0].size
+        left = location['x']
+        right = left + size['width']
+        top = location['y']
+        down = top + size['height']
+        box = (left, top, right, down) # box of region to crop
+
+        region = image.crop(box)
+        new_size = (region.size[0] * zoom_factor, region.size[1] * zoom_factor)
+        region = region.resize(new_size)
+        new_image = Image.new('RGB', (max(image.size[0], region.size[0]), image.size[1] + region.size[1] + 10))
+
+        new_image.paste(image, (0, 0))
+        new_image.paste(region, (0, image.size[1] + 10))
+        new_image.save(filename)
 
     class ScreenShot(object):
         def __init__(self, driver, path = None, df = None):
@@ -256,7 +291,12 @@ def create(driver = None):
             '''
             url = check_url(url)
             self.driver.get(url)
-            highlight_web_elements(self.driver,url,ids,xpaths,color,frame,text,arrow)
+            highlight_web_elements(self.driver, url, ids, xpaths, color, frame, text, arrow)
+
+        def zoom_in(self, url, ids = None, xpaths = None, zoom_factor = 2):
+            url = check_url(url)
+            self.driver.get(url)
+            zoom_in(self.driver, ids, xpaths, zoom_factor)
 
         def close(self):
             self.driver.close()
