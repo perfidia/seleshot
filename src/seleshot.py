@@ -111,6 +111,15 @@ def create(driver = None):
             pass
         return result
 
+    def get_web_element_box_size(webelement):
+        location = web_element.location
+        size = web_element.size
+        left = location['x']
+        right = left + size['width']
+        top = location['y']
+        down = top + size['height']
+        box = (left, top, right, down) # box of region to crop
+        return box
 
     def get_web_elements_by_xpath(driver, xpath):
         result = []
@@ -130,14 +139,7 @@ def create(driver = None):
         for i in ids:
             web_elements = get_web_element_by_id(driver, i)
             for web_element in web_elements:
-                location = web_element.location
-                size = web_element.size
-                left = location['x']
-                right = left + size['width']
-                top = location['y']
-                down = top + size['height']
-                box = (left, top, right, down) # box of region to crop
-
+                box = get_web_element_box_size(web_element)
                 region = image.crop(box)
                 filename = basename + "-" + translate(i) + ".png"
                 region.save(filename)
@@ -147,18 +149,10 @@ def create(driver = None):
         for xpath in xpaths:
             web_elements = get_web_elements_by_xpath(driver, xpath)
             for i in xrange(len(web_elements)):
-                location = web_elements[i].location
-                size = web_elements[i].size
-                left = location['x']
-                right = left + size['width']
-                top = location['y']
-                down = top + size['height']
-                box = (left, top, right, down) # box of region to crop
-
+                box = get_web_element_box_size(web_elements[i])
                 region = image.crop(box)
                 filename = get_filename(xpath, basename, web_elements[i], i)
                 region.save(filename)
-
 
     def highlight_web_elements(driver, url, ids = None, xpaths = None, color = '', frame = False, text = '', arrow = False):
         ids = check_ids(ids)
@@ -222,13 +216,7 @@ def create(driver = None):
         filename = get_filename(xpath, basename + '-zoomed', web_elements[0], 0)
         driver.save_screenshot(filename)
         image = Image.open(filename)
-        location = web_elements[0].location
-        size = web_elements[0].size
-        left = location['x']
-        right = left + size['width']
-        top = location['y']
-        down = top + size['height']
-        box = (left, top, right, down) # box of region to crop
+        box = get_web_element_box_size(web_elements[0])
 
         region = image.crop(box)
         new_size = (region.size[0] * zoom_factor, region.size[1] * zoom_factor)
