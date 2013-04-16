@@ -73,18 +73,18 @@ def create(driver = None):
 
         return retval
 
-    def get_next_filename(filename):
+    def get_next_filename(filename, prefix):
         highlighted_files = []
         files = os.listdir(os.getcwd())
         for f in files:
-            if f.find('highlighted') != -1:
+            if f.find(prefix) != -1:
                 highlighted_files.append(f)
         highlighted_files.sort(key = lambda s: len(s))
         if highlighted_files:
             indexOfNumber = highlighted_files[-1].find('[') + 1
-            filename += "-highlighted[" + str(int(highlighted_files[-1][indexOfNumber:-5]) + 1) + "].png"
+            filename += "-" + prefix + "[" + str(int(highlighted_files[-1][indexOfNumber:-5]) + 1) + "].png"
         else:
-            filename += "-highlighted[1].png";
+            filename += "-" + prefix + "[1].png";
         return filename
 
     def get_filename(xpath, basename, web_element, index):
@@ -111,7 +111,7 @@ def create(driver = None):
             pass
         return result
 
-    def get_web_element_box_size(webelement):
+    def get_web_element_box_size(web_element):
         location = web_element.location
         size = web_element.size
         left = location['x']
@@ -120,6 +120,19 @@ def create(driver = None):
         down = top + size['height']
         box = (left, top, right, down) # box of region to crop
         return box
+
+    def calculate_new_image_size(main_image, web_elements, zoom_factor):
+        x = main_image.size[0]
+        y = main_image.size[1]
+
+        max_x = 0
+        total_y = 0
+        for web_element in web_elements:
+            max_x = max(web_element.size['width'] * zoom_factor, max_x)
+            total_y += web_element.size['height'] * zoom_factor + 10
+
+        result = (x + max_x + 10, y + total_y)
+        return result
 
     def get_web_elements_by_xpath(driver, xpath):
         result = []
@@ -160,7 +173,7 @@ def create(driver = None):
         path = os.getcwd()
         url = driver.current_url
         basename = get_basename(path, url)
-        filename = get_next_filename(basename)
+        filename = get_next_filename(basename, 'highlighted')
 
         web_elements = []
         for i in ids:
@@ -210,21 +223,22 @@ def create(driver = None):
         for xpath in xpaths:
             web_elements += get_web_elements_by_xpath(driver, xpath)
 
-        if len(web_elements) != 1:
-            raise ValueError("You have to provide one element to zoom in!")
-
-        filename = get_filename(xpath, basename + '-zoomed', web_elements[0], 0)
+        filename = get_next_filename(basename, 'zoomed')
         driver.save_screenshot(filename)
         image = Image.open(filename)
-        box = get_web_element_box_size(web_elements[0])
 
-        region = image.crop(box)
-        new_size = (region.size[0] * zoom_factor, region.size[1] * zoom_factor)
-        region = region.resize(new_size)
-        new_image = Image.new('RGB', (max(image.size[0], region.size[0]), image.size[1] + region.size[1] + 10))
-
+        new_image = Image.new('RGB', (calculate_new_image_size(image, web_elements, zoom_factor)))
         new_image.paste(image, (0, 0))
-        new_image.paste(region, (0, image.size[1] + 10))
+
+        offset_y = 0
+        for i in xrange(len(web_elements)):
+            box = get_web_element_box_size(web_elements[i])
+            region = image.crop(box)
+            new_size = (region.size[0] * zoom_factor, region.size[1] * zoom_factor)
+            region = region.resize(new_size)
+            new_image.paste(region, (image.size[0] + 10, offset_y))
+            offset_y += web_elements[i].size['height'] * zoom_factor + 10
+
         new_image.save(filename)
 
     class ScreenShot(object):
