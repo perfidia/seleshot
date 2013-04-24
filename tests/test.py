@@ -101,44 +101,44 @@ class Test(unittest.TestCase):
 
     def test_color_web_element(self):
         files = os.listdir(os.getcwd())
-        self.s.highlight_web_elements(url = "http://www.python.org", xpaths = [".//*[@id='intro']/p[1]/strong"], color = 'green')
+        self.s.highlight(url = "http://www.python.org", xpaths = [".//*[@id='intro']/p[1]/strong"], color = 'green')
         current_files = os.listdir(os.getcwd())
         self.assertEquals(len(files) + 1, len(current_files))
 
-        self.s.highlight_web_elements(url = "http://www.python.org", ids = ["submit"], color = 'green')
+        self.s.highlight(url = "http://www.python.org", ids = ["submit"], color = 'green')
         current_files = os.listdir(os.getcwd())
         self.assertEquals(len(files) + 2, len(current_files))
 
-        self.s.highlight_web_elements(url = "http://www.python.org", xpaths = [".//*[@id='intro']/p[1]/strong"], ids = ["submit"], color = 'green')
+        self.s.highlight(url = "http://www.python.org", xpaths = [".//*[@id='intro']/p[1]/strong"], ids = ["submit"], color = 'green')
         current_files = os.listdir(os.getcwd())
         self.assertEquals(len(files) + 3, len(current_files))
 
     def test_frame_around_web_element(self):
         files = os.listdir(os.getcwd())
-        self.s.highlight_web_elements(url = "http://www.python.org", xpaths = [".//*[@id='menu']/ul/li"], frame = True)
+        self.s.highlight(url = "http://www.python.org", xpaths = [".//*[@id='menu']/ul/li"], frame = True)
         current_files = os.listdir(os.getcwd())
         self.assertEquals(len(files) + 1, len(current_files))
 
     def test_label_next_to_web_element(self):
         files = os.listdir(os.getcwd())
-        self.s.highlight_web_elements(url = "http://www.python.org", ids = ["utility-menu"], frame = True, text = 'EXAMPLE')
+        self.s.highlight(url = "http://www.python.org", ids = ["utility-menu"], frame = True, text = 'EXAMPLE')
         current_files = os.listdir(os.getcwd())
         self.assertEquals(len(files) + 1, len(current_files))
 
     def test_color_and_frame(self):
         files = os.listdir(os.getcwd())
-        self.s.highlight_web_elements(url = "http://www.python.org", xpaths = [".//*[@id='left-hand-navigation']/h4/a", ".//*[@id='menu']/ul/li/a"], frame = True, color = 'yellow')
+        self.s.highlight(url = "http://www.python.org", xpaths = [".//*[@id='left-hand-navigation']/h4/a", ".//*[@id='menu']/ul/li/a"], frame = True, color = 'yellow')
         current_files = os.listdir(os.getcwd())
         self.assertEquals(len(files) + 1, len(current_files))
 
     def test_arrow(self):
         files = os.listdir(os.getcwd())
-        self.s.highlight_web_elements(url = "http://www.python.org", xpaths = [".//*[@id='content']/h1", ".//*[@id='left-hand-navigation']/h4[1]/a"], arrow = True)
+        self.s.highlight(url = "http://www.python.org", xpaths = [".//*[@id='content']/h1", ".//*[@id='left-hand-navigation']/h4[1]/a"], arrow = True)
         current_files = os.listdir(os.getcwd())
         self.assertEquals(len(files) + 1, len(current_files))
 
         files = os.listdir(os.getcwd())
-        self.s.highlight_web_elements(url = "http://www.python.org", xpaths = [".//*[@id='content']/h1", ".//*[@id='left-hand-navigation']/h4[1]/a"], color = 'yellow', arrow = True)
+        self.s.highlight(url = "http://www.python.org", xpaths = [".//*[@id='content']/h1", ".//*[@id='left-hand-navigation']/h4[1]/a"], color = 'yellow', arrow = True)
         current_files = os.listdir(os.getcwd())
         self.assertEquals(len(files) + 1, len(current_files))
 

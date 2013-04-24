@@ -174,7 +174,7 @@ def create(driver = None):
                 filename = get_filename(xpath, basename, web_elements[i], i)
                 region.save(filename)
 
-    def highlight_web_elements(driver, url, ids = None, xpaths = None, color = '', frame = False, text = '', arrow = False):
+    def highlight(driver, url, ids = None, xpaths = None, color = '', frame = False, text = '', arrow = False):
         ids = check_ids(ids)
         xpaths = check_xpaths(xpaths)
         path = os.getcwd()
@@ -190,30 +190,13 @@ def create(driver = None):
 
         for web_element in web_elements:
             if frame and arrow:
-                driver.execute_script("var element = arguments[0]; element.style.color = arguments[1]; element.style.outline = '2px dashed red';" +
-                                      "arrow = document.createElement('span'); arrow.style.width = '38px'; arrow.style.height = '45px';" +
-                                      "arrow.style.background = 'url(http://www.elhostel.pl/images/arrow.png) no-repeat';" +
-                                      "arrow.style.display = 'inline-block'; element.appendChild(arrow);" +
-                                      "label = document.createElement('span'); label.style.color = 'red';" +
-                                      "label.innerHTML = arguments[2]; element.insertBefore(label,element.firstChild);",
-                    web_element, color, text)
+                driver.execute_script(scriptFrameAndArrow, web_element, color, text)
             if frame:
-                driver.execute_script("var element = arguments[0]; element.style.color = arguments[1];" +
-                                      " element.style.outline = '2px dashed red';label = document.createElement('span'); label.style.color = 'red';" +
-                                      "label.innerHTML = arguments[2]; element.insertBefore(label,element.firstChild);",
-                    web_element, color, text)
+                driver.execute_script(scriptFrame, web_element, color, text)
             elif arrow:
-                driver.execute_script("var element = arguments[0]; element.style.color = arguments[1];" +
-                                      "arrow = document.createElement('span'); arrow.style.width = '38px'; arrow.style.height = '45px';" +
-                                      "arrow.style.background = 'url(http://www.elhostel.pl/images/arrow.png) no-repeat';" +
-                                      "arrow.style.display = 'inline-block'; element.appendChild(arrow);" +
-                                      "label = document.createElement('span'); label.style.color = 'red';" +
-                                      "label.innerHTML = arguments[2]; element.insertBefore(label,element.firstChild);",
-                    web_element, color, text)
+                driver.execute_script(scriptArrow, web_element, color, text)
             else:
-                driver.execute_script("var element = arguments[0]; element.style.color = arguments[1]; label = document.createElement('span'); label.style.color = 'red';" +
-                                      "label.innerHTML = arguments[2]; element.insertBefore(label,element.firstChild);",
-                    web_element, color, text)
+                driver.execute_script(scriptLabel, web_element, color, text)
 
         driver.save_screenshot(filename)
 
@@ -285,7 +268,7 @@ def create(driver = None):
             self.driver.get(url)
             return get_data(self.driver, conf, filename)
 
-        def highlight_web_elements(self, url, ids = None, xpaths = None, color = '', frame = False, text = '', arrow = False):
+        def highlight(self, url, ids = None, xpaths = None, color = '', frame = False, text = '', arrow = False):
             '''
             Highlight specified webelements
 
@@ -300,7 +283,7 @@ def create(driver = None):
             '''
             url = check_url(url)
             self.driver.get(url)
-            highlight_web_elements(self.driver, url, ids, xpaths, color, frame, text, arrow)
+            highlight(self.driver, url, ids, xpaths, color, frame, text, arrow)
 
         def zoom_in(self, url, ids = None, xpaths = None, zoom_factor = 2):
             url = check_url(url)
@@ -371,7 +354,7 @@ def create(driver = None):
         elif webelement.get_attribute("class") and (conf in ["ALL"]):
             newTuple = xpath, webelement.location["x"], webelement.location["y"], webelement.size["width"], webelement.size["height"], str(webelement.get_attribute("class"))
             all_elements.append(newTuple)
-        elif (conf in ["ALL"]):
+        elif conf in ["ALL"]:
             newTuple = xpath, webelement.location["x"], webelement.location["y"], webelement.size["width"], webelement.size["height"]
             all_elements.append(newTuple)
 
@@ -386,6 +369,16 @@ def create(driver = None):
     #########################
     #          body         #
     #########################
+
+    scriptFrameAndArrow = """var element = arguments[0]; element.style.color = arguments[1]; element.style.outline = '2px dashed red';arrow = document.createElement('span'); arrow.style.width = '38px'; arrow.style.height = '45px';
+    arrow.style.background = 'url(http://www.elhostel.pl/images/arrow.png) no-repeat';arrow.style.display = 'inline-block'; element.appendChild(arrow);label = document.createElement('span'); label.style.color = 'red';label.innerHTML = arguments[2]; element.insertBefore(label,element.firstChild);"""
+
+    scriptFrame = """var element = arguments[0]; element.style.color = arguments[1];element.style.outline = '2px dashed red';label = document.createElement('span'); label.style.color = 'red';label.innerHTML = arguments[2]; element.insertBefore(label,element.firstChild);"""
+
+    scriptArrow = """var element = arguments[0]; element.style.color = arguments[1];arrow = document.createElement('span'); arrow.style.width = '38px'; arrow.style.height = '45px';arrow.style.background = 'url(http://www.elhostel.pl/images/arrow.png) no-repeat';
+    arrow.style.display = 'inline-block'; element.appendChild(arrow);label = document.createElement('span'); label.style.color = 'red';label.innerHTML = arguments[2]; element.insertBefore(label,element.firstChild);"""
+
+    scriptLabel = """var element = arguments[0]; element.style.color = arguments[1]; label = document.createElement('span'); label.style.color = 'red';label.innerHTML = arguments[2]; element.insertBefore(label,element.firstChild);"""
 
     if driver is None:
         # no parameter provided, create the default driver
