@@ -89,16 +89,23 @@ def create(driver = None):
 
     def get_filename(xpath, basename, web_element, index):
         xpath = re.sub(r'[/]+', "_", xpath)
+        xpath2 = re.sub(r'[\\/:"*?<>|]+', "", xpath)
+        filename = [basename, "-"]
+
         if xpath[-1] == '*':
-            xpath = re.sub(r'[\\/:"*?<>|]+', "", xpath)
-            filename = basename + "-" + translate(xpath) + web_element.tag_name + "[" + str(index + 1) + "].png"
+            filename.append(web_element.tag_name)
+            filename.append("[")
+            filename.append(str(index + 1))
+            filename.append("]")
         elif xpath[-1] == ']':
-            xpath = re.sub(r'[\\/:"*?<>|]+', "", xpath)
-            filename = basename + "-" + translate(xpath) + ".png"
+            pass
         else:
-            xpath = re.sub(r'[\\/:"*?<>|]+', "", xpath)
-            filename = basename + "-" + translate(xpath) + "[" + str(index + 1) + "].png"
-        return filename
+            filename.append("[")
+            filename.append(str(index + 1))
+            filename.append("]")
+
+        filename.append(".png")
+        return "".join(filename)
 
     def get_web_element_by_id(driver, i):
         result = []
