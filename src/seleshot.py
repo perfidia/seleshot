@@ -122,23 +122,19 @@ def create(driver = None):
         location = web_element.location
         size = web_element.size
         left = location['x']
-        right = left + size['width']
+        right = location['x'] + size['width']
         top = location['y']
-        down = top + size['height']
+        down = location['y'] + size['height']
         box = (left, top, right, down) # box of region to crop
         return box
 
-    def calculate_new_image_size(main_image, web_elements, zoom_factor):
-        x = main_image.size[0]
-        y = main_image.size[1]
-
+    def calculate_new_image_size(main_image, web_elements, zoom_factor, extra_x_size, border_size):
         max_x = 0
-        total_y = 0
-        for web_element in web_elements:
-            max_x = max(web_element.size['width'] * zoom_factor, max_x)
-            total_y += web_element.size['height'] * zoom_factor + 10
 
-        result = (x + max_x + 10, y + total_y)
+        for web_element in web_elements:
+            max_x = max((web_element.size['width'] + border_size * 2) * zoom_factor, max_x)
+
+        result = (main_image.size[0] + max_x + extra_x_size, main_image.size[1])
         return result
 
     def get_web_elements_by_xpath(driver, xpath):
@@ -217,17 +213,20 @@ def create(driver = None):
         driver.save_screenshot(filename)
         image = Image.open(filename)
 
-        new_image = Image.new('RGB', (calculate_new_image_size(image, web_elements, zoom_factor)))
+        extra_x_size = 100
+        element_border_size = 5
+        new_image = Image.new('RGB', (calculate_new_image_size(image, web_elements, zoom_factor, extra_x_size, element_border_size)))
         new_image.paste(image, (0, 0))
 
-        offset_y = 0
+        offset_y = 10
         for i in xrange(len(web_elements)):
             box = get_web_element_box_size(web_elements[i])
+            box = (box[0] - element_border_size, box[1] - element_border_size, box[2] + element_border_size, box[3] + element_border_size)
             region = image.crop(box)
-            new_size = (region.size[0] * zoom_factor, region.size[1] * zoom_factor)
+            new_size = ((region.size[0]) * zoom_factor, (region.size[1]) * zoom_factor)
             region = region.resize(new_size)
-            new_image.paste(region, (image.size[0] + 10, offset_y))
-            offset_y += web_elements[i].size['height'] * zoom_factor + 10
+            new_image.paste(region, (image.size[0] + extra_x_size / 2, offset_y))
+            offset_y += (web_elements[i].size['height'] + element_border_size * 2) * zoom_factor + 10
 
         new_image.save(filename)
 
@@ -285,10 +284,22 @@ def create(driver = None):
             self.driver.get(url)
             highlight(self.driver, url, ids, xpaths, color, frame, text, arrow)
 
-        def zoom_in(self, url, ids = None, xpaths = None, zoom_factor = 2):
-            url = check_url(url)
-            self.driver.get(url)
-            zoom_in(self.driver, ids, xpaths, zoom_factor)
+        def zoom_in(self, url = False, ids = None, xpaths = None, zoom_factor = 2):
+            '''
+            Zoomed in specified webelements
+
+            @param url: url to the webpage (including http protocol), if url is false there is no page refresh
+            @param ids: list of ids on the web page
+            @param xpaths: list of xpath on the web pag
+            @param zoom_factor: factor of zooming
+
+            '''
+            if url == False:
+                zoom_in(self.driver, ids, xpaths, zoom_factor)
+            else:
+                url = check_url(url)
+                self.driver.get(url)
+                zoom_in(self.driver, ids, xpaths, zoom_factor)
 
         def close(self):
             self.driver.close()

@@ -46,6 +46,21 @@ The code below shows how to create a simple application which takes a screen sho
     s.get_screen(url="http://www.python.org", ids = ["searchbox"])
     s.close()
 
+This code shows how to use highlight and zoom_in functions. In zoom_in function you do not have to specity url parameter, then
+the driver does not refresh the page and you can zoom in highlighted elements.
+
+.. code-block:: python
+
+    from seleshot import create
+
+    xpaths =  [".//*[@id='content']/h1", ".//*[@id='menu']/ul/li[3]/a"]
+    ids = ["submit"]
+    url = 'http://www.python.org'
+
+    s.highlight(url = url, xpaths = xpaths, frame = True, color = 'yellow')
+    s.zoom_in(ids = ids, xpaths = xpaths, zoom_factor = 5)
+    s.close()
+
 Selenium tests
 --------------
 

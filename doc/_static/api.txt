@@ -21,6 +21,28 @@ ScreenShot class contains the following functions:
     :param conf: configuration of storing elements, store only elements with ids if conf is in [None, "ID"]; store everything (ids and classes) if conf is in ["ALL"]
     :param filename: a location of a file where to store collected data
 
+.. function:: highlight(self, url, ids = None, xpaths = None, color = '', frame = False, text = '', arrow = False)
+
+    Highlight specified webelements.
+
+    :param url: url to the webpage (including http protocol)
+    :param ids: list of ids on the web page
+    :param xpaths: list of xpath on the web pag
+    :param color: specified webelement color
+    :param frame: boolean value indicating if to draw a frame around the webelement
+    :param text: optional text which would be draw next to the highlighted webelement
+    :param arrow: boolean value indicating if to draw an arrow next to the webelement
+
+.. function:: zoom_in(self, url = False, ids = None, xpaths = None, zoom_factor = 2)
+
+    Zoomed in specified webelements.
+
+    :param url: url to the webpage (including http protocol), if url is false there is no page refresh
+    :param ids: list of ids on the web page
+    :param xpaths: list of xpath on the web pag
+    :param zoom_factor: factor of zooming
+
+
 .. function:: close()
 
     Close webdriver.
