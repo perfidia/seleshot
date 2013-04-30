@@ -13,6 +13,7 @@ import sys
 import string
 import argparse
 import Image
+import ImageDraw
 from selenium import webdriver
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.common.exceptions import NoSuchElementException
@@ -137,6 +138,11 @@ def create(driver = None):
         result = (main_image.size[0] + max_x + extra_x_size, main_image.size[1])
         return result
 
+    def draw_lines_between_elements(image, element1_box, element2_box):
+        draw = ImageDraw.Draw(image)
+        draw.line((element1_box[2], element1_box[1], element2_box[0], element2_box[1]), fill = (0, 100, 0))
+        draw.line((element1_box[2], element1_box[3], element2_box[0], element2_box[3]), fill = (0, 100, 0))
+
     def get_web_elements_by_xpath(driver, xpath):
         result = []
         try:
@@ -226,6 +232,10 @@ def create(driver = None):
             new_size = ((region.size[0]) * zoom_factor, (region.size[1]) * zoom_factor)
             region = region.resize(new_size)
             new_image.paste(region, (image.size[0] + extra_x_size / 2, offset_y))
+
+            box2 = (image.size[0] + extra_x_size / 2, offset_y, image.size[0] + extra_x_size / 2 + new_size[0], offset_y + new_size[1])
+            draw_lines_between_elements(new_image, get_web_element_box_size(web_elements[i]), box2)
+
             offset_y += (web_elements[i].size['height'] + element_border_size * 2) * zoom_factor + 10
 
         new_image.save(filename)
