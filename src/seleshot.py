@@ -90,7 +90,7 @@ def create(driver = None):
     def get_filename(xpath, basename, web_element, index):
         xpath = re.sub(r'[/]+', "_", xpath)
         xpath2 = re.sub(r'[\\/:"*?<>|]+', "", xpath)
-        filename = [basename, "-"]
+        filename = [basename, "-", xpath2]
 
         if xpath[-1] == '*':
             filename.append(web_element.tag_name)
