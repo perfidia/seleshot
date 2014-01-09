@@ -14,6 +14,12 @@ if __name__ == '__main__':
     ids = ["submit"]
     url = 'http://www.python.org'
 
+    s.get_screen(url = url)
+    s.get_screen(url = url, filename = "screenshot.png")
+    s.get_screen(url = None, filename = "use_loaded_page.png")
+
     s.highlight(url = url, xpaths = xpaths, frame = True, color = 'yellow')
+
     s.zoom_in(ids = ids, xpaths = xpaths, zoom_factor = 5)
+
     s.close()

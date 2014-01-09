@@ -246,28 +246,30 @@ def create(driver = None):
             self.path = check_path(path)
             self.df = check_df(df)
 
-        def get_screen(self, url, ids = None, xpaths = None, path = None, df = None):
+        def get_screen(self, url, ids = None, xpaths = None, path = None, filename = None):
             '''
             Get specified screen(s)
 
-            @param url: url to the webpage (including http protocol)
-            @param ids: list of ids on the web page
-            @param xpaths: list of xpath on the web page
-            @param path: path to save directory
-            @param df: format, not supported
-
-            @return: void
+            @param url: webpage to capture (including http protocol, None to reuse loaded webpage)
+            @param ids: list of ids on the web page to capture
+            @param xpaths: list of xpath on the web page to capture
+            @param path: path where to save screen shots
+            @param filename: custom filename
             '''
-            url = check_url(url)
 
-            self.driver.get(url)
-            get_screen(self.driver, ids, xpaths, path, df)
+            if url != None:
+                url = check_url(url)
+                self.driver.get(url)
+            elif filename == None:
+                raise Exception("Filename should not bo None when url is None")
+
+            get_screen(self.driver, ids, xpaths, path, filename)
 
         def get_data(self, url, conf = None, filename = None):
             '''
             Get information about elements on a web page.
 
-            @param url: url to the webpage (including http protocol)
+            @param url: webpage to capture (including http protocol)
             @param conf: configuration of storing elements, store only elements with ids if conf is in [None, "ID"]; store everything (ids and classes) if conf is in ["ALL"]
             @param filename: a location of a file where to store collected data
 
@@ -279,9 +281,9 @@ def create(driver = None):
 
         def highlight(self, url, ids = None, xpaths = None, color = '', frame = False, text = '', arrow = False):
             '''
-            Highlight specified webelements
+            Highlight specified elements on a page
 
-            @param url: url to the webpage (including http protocol)
+            @param url: webpage to capture (including http protocol)
             @param ids: list of ids on the web page
             @param xpaths: list of xpath on the web pag
             @param color: specified webelement color
@@ -314,16 +316,15 @@ def create(driver = None):
         def close(self):
             self.driver.close()
 
-    def get_screen(driver, ids = None, xpaths = None, path = None, df = None):
+    def get_screen(driver, ids = None, xpaths = None, path = None, filename = None):
         # print "WebDriver"
 
         ids = check_ids(ids)
         xpaths = check_xpaths(xpaths)
         path = check_path(path)
-        df = check_df(df)
         url = driver.current_url
         basename = get_basename(path, url)
-        filename = basename + ".png"
+        if filename == None: filename = basename + ".png"
         driver.save_screenshot(filename)
 
         if ids:
