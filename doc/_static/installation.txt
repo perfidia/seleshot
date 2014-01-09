@@ -6,7 +6,7 @@ The following libraries are required:
     * python 2.7
     * python-setuptools
     * python-imaging 1.1.7-4
-    * selenium-2.25.0-py2.7 (easy_install)
+    * selenium (tested with: 2.25.0-py2.7, 2.39.0-py2.7)
 
         .. code-block:: bash
 
