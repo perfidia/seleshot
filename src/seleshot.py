@@ -50,12 +50,6 @@ def create(driver = None):
 
         return path
 
-    def check_df(df):
-        if df not in [None, "json", "xml"]:
-            df = None
-
-        return df
-
     def translate(txt):
         return txt.translate(string.maketrans(':/', '--'))
 
@@ -115,7 +109,7 @@ def create(driver = None):
             if not web_element.is_displayed() or web_element.size['width'] == 0 or web_element.size['height'] == 0:
                 return result
             result.append(web_element)
-        except NoSuchElementException, e:
+        except NoSuchElementException:
             pass
         return result
 
@@ -145,15 +139,18 @@ def create(driver = None):
 
     def get_web_elements_by_xpath(driver, xpath):
         result = []
+
         try:
             web_elements = driver.find_elements_by_xpath(xpath)
-        except NoSuchElementException, e:
+        except NoSuchElementException:
             web_elements = None
+
         if web_elements:
             for web_element in web_elements:
                 if not web_element.is_displayed() or web_element.size['width'] == 0 or web_element.size['height'] == 0:
                     continue
                 result.append(web_element)
+
         return result
 
     def get_ids(driver, basename, ids):
@@ -241,10 +238,8 @@ def create(driver = None):
         new_image.save(filename)
 
     class ScreenShot(object):
-        def __init__(self, driver, path = None, df = None):
+        def __init__(self, driver):
             self.driver = driver
-            self.path = check_path(path)
-            self.df = check_df(df)
 
         def get_screen(self, url, ids = None, xpaths = None, path = None, filename = None):
             '''
@@ -277,6 +272,7 @@ def create(driver = None):
             '''
             url = check_url(url)
             self.driver.get(url)
+
             return get_data(self.driver, conf, filename)
 
         def highlight(self, url, ids = None, xpaths = None, color = '', frame = False, text = '', arrow = False):
@@ -300,18 +296,17 @@ def create(driver = None):
             '''
             Zoomed in specified webelements
 
-            @param url: url to the webpage (including http protocol), if url is false there is no page refresh
+            @param url: webpage to capture (including http protocol), if url is false there is no page refresh
             @param ids: list of ids on the web page
             @param xpaths: list of xpath on the web pag
             @param zoom_factor: factor of zooming
 
             '''
-            if url == False:
-                zoom_in(self.driver, ids, xpaths, zoom_factor)
-            else:
+            if url == True:
                 url = check_url(url)
                 self.driver.get(url)
-                zoom_in(self.driver, ids, xpaths, zoom_factor)
+
+            zoom_in(self.driver, ids, xpaths, zoom_factor)
 
         def close(self):
             self.driver.close()
@@ -423,7 +418,7 @@ def create(driver = None):
 
         return create(driver())
     else:
-        raise Exception("there is something strange with the driver, will you check it?")
+        raise Exception("There is something strange with the driver, will you check it?")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description = 'Takes a screen shot of a web page.')
