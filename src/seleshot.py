@@ -12,6 +12,8 @@ import os
 import sys
 import string
 import argparse
+import tempfile
+import shutil
 import Image
 import ImageDraw
 from selenium import webdriver
@@ -53,20 +55,22 @@ def create(driver = None):
     def translate(txt):
         return txt.translate(string.maketrans(':/', '--'))
 
-    def get_basename(path, url):
-        if isinstance(url, unicode):
-            url = str(url)
+    def get_basename(path, url, filename = None):
+        if filename and filename[-4:] == ".png":
+            filename = filename[:-4].rpartition(os.sep)[-1]
+        else:
+            if isinstance(url, unicode):
+                url = str(url)
 
-        if url[:7] == "http://":
-            url = url[7:]
+            if url[:7] == "http://":
+                url = url[7:]
 
-        if url[-1] == "/":
-            url = url[:-1]
+            if url[-1] == "/":
+                url = url[:-1]
 
-        tmp = translate(url)
-        retval = os.path.join(path, tmp)
+            filename = translate(url)
 
-        return retval
+        return os.path.join(path, filename)
 
     def get_next_filename(filename, prefix):
         highlighted_files = []
@@ -82,36 +86,48 @@ def create(driver = None):
             filename += "-" + prefix + "[1].png";
         return filename
 
-    def get_filename(xpath, basename, web_element, index):
+    def get_filename(xpath, basename, web_element, index = None):
         xpath = re.sub(r'[/]+', "_", xpath)
         xpath2 = re.sub(r'[\\/:"*?<>|]+', "", xpath)
         filename = [basename, "-", xpath2]
 
         if xpath[-1] == '*':
             filename.append(web_element.tag_name)
-            filename.append("[")
-            filename.append(str(index + 1))
-            filename.append("]")
+#             filename.append("[")
+#             filename.append(str(index + 1))
+#             filename.append("]")
         elif xpath[-1] == ']':
             pass
-        else:
-            filename.append("[")
-            filename.append(str(index + 1))
-            filename.append("]")
+#         else:
+#             filename.append("[")
+#             filename.append(str(index + 1))
+#             filename.append("]")
 
         filename.append(".png")
+
         return "".join(filename)
 
-    def get_web_element_by_id(driver, i):
-        result = []
+    def get_web_element_by_id(driver, id):
         try:
-            web_element = driver.find_element_by_id(i)
-            if not web_element.is_displayed() or web_element.size['width'] == 0 or web_element.size['height'] == 0:
-                return result
-            result.append(web_element)
+            element = driver.find_element_by_id(id)
+
+            if not element.is_displayed() or element.size['width'] == 0 or element.size['height'] == 0:
+                return None
         except NoSuchElementException:
             pass
-        return result
+
+        return element
+
+    def get_web_element_by_xpath(driver, xpath):
+        try:
+            element = driver.find_element_by_xpath(xpath)
+
+            if not element.is_displayed() or element.size['width'] == 0 or element.size['height'] == 0:
+                return None
+        except NoSuchElementException:
+            pass
+
+        return element
 
     def get_web_element_box_size(web_element):
         location = web_element.location
@@ -137,41 +153,40 @@ def create(driver = None):
         draw.line((element1_box[2], element1_box[1], element2_box[0], element2_box[1]), fill = (0, 100, 0))
         draw.line((element1_box[2], element1_box[3], element2_box[0], element2_box[3]), fill = (0, 100, 0))
 
-    def get_web_elements_by_xpath(driver, xpath):
-        result = []
+    def get_ids(driver, tempfd, basename, ids):
+        retval = []
 
-        try:
-            web_elements = driver.find_elements_by_xpath(xpath)
-        except NoSuchElementException:
-            web_elements = None
+        image = Image.open(tempfd.name)
 
-        if web_elements:
-            for web_element in web_elements:
-                if not web_element.is_displayed() or web_element.size['width'] == 0 or web_element.size['height'] == 0:
-                    continue
-                result.append(web_element)
+        for id in ids:
+            element = get_web_element_by_id(driver, id)
 
-        return result
+            box = get_web_element_box_size(element)
+            region = image.crop(box)
+            filename = basename + "-" + translate(id) + ".png"
+            region.save(filename)
 
-    def get_ids(driver, basename, ids):
-        image = Image.open(basename + ".png")
-        for i in ids:
-            web_elements = get_web_element_by_id(driver, i)
-            for web_element in web_elements:
-                box = get_web_element_box_size(web_element)
-                region = image.crop(box)
-                filename = basename + "-" + translate(i) + ".png"
-                region.save(filename)
+            retval.append(('id', id, filename))
 
-    def get_xpaths(driver, basename, xpaths):
-        image = Image.open(basename + ".png")
+        return retval
+
+    def get_xpaths(driver, tempfd, basename, xpaths):
+        retval = []
+
+        image = Image.open(tempfd.name)
+
         for xpath in xpaths:
-            web_elements = get_web_elements_by_xpath(driver, xpath)
-            for i in xrange(len(web_elements)):
-                box = get_web_element_box_size(web_elements[i])
-                region = image.crop(box)
-                filename = get_filename(xpath, basename, web_elements[i], i)
-                region.save(filename)
+            element = get_web_element_by_xpath(driver, xpath)
+
+            box = get_web_element_box_size(element)
+            region = image.crop(box)
+            filename = get_filename(xpath, basename, element)
+
+            region.save(filename)
+
+            retval.append(('xpath', xpath, filename))
+
+        return retval
 
     def highlight(driver, url, ids = None, xpaths = None, color = '', frame = False, text = '', arrow = False):
         ids = check_ids(ids)
@@ -183,13 +198,14 @@ def create(driver = None):
 
         web_elements = []
         for i in ids:
-            web_elements += get_web_element_by_id(driver, i)
+            web_elements.append(get_web_element_by_id(driver, i))
         for xpath in xpaths:
-            web_elements += get_web_elements_by_xpath(driver, xpath)
+            web_elements.append(get_web_element_by_xpath(driver, xpath))
 
         for web_element in web_elements:
             if frame and arrow:
                 driver.execute_script(scriptFrameAndArrow, web_element, color, text)
+
             if frame:
                 driver.execute_script(scriptFrame, web_element, color, text)
             elif arrow:
@@ -208,9 +224,9 @@ def create(driver = None):
 
         web_elements = []
         for i in ids:
-            web_elements += get_web_element_by_id(driver, i)
+            web_elements.append(get_web_element_by_id(driver, i))
         for xpath in xpaths:
-            web_elements += get_web_elements_by_xpath(driver, xpath)
+            web_elements.append(get_web_element_by_xpath(driver, xpath))
 
         filename = get_next_filename(basename, 'zoomed')
         driver.save_screenshot(filename)
@@ -241,7 +257,7 @@ def create(driver = None):
         def __init__(self, driver):
             self.driver = driver
 
-        def get_screen(self, url, ids = None, xpaths = None, path = None, filename = None):
+        def get_screen(self, url = None, ids = None, xpaths = None, path = None, filename = None):
             '''
             Get specified screen(s)
 
@@ -255,10 +271,10 @@ def create(driver = None):
             if url != None:
                 url = check_url(url)
                 self.driver.get(url)
-            elif filename == None:
-                raise Exception("Filename should not bo None when url is None")
+            elif self.driver.current_url == "about:blank":
+                raise Exception("No page loaded")
 
-            get_screen(self.driver, ids, xpaths, path, filename)
+            return get_screen(self.driver, ids, xpaths, path, filename)
 
         def get_data(self, url, conf = None, filename = None):
             '''
@@ -292,6 +308,8 @@ def create(driver = None):
             self.driver.get(url)
             highlight(self.driver, url, ids, xpaths, color, frame, text, arrow)
 
+            return "TODO"
+
         def zoom_in(self, url = False, ids = None, xpaths = None, zoom_factor = 2):
             '''
             Zoomed in specified webelements
@@ -308,6 +326,8 @@ def create(driver = None):
 
             zoom_in(self.driver, ids, xpaths, zoom_factor)
 
+            return "TODO"
+
         def close(self):
             self.driver.close()
 
@@ -318,15 +338,27 @@ def create(driver = None):
         xpaths = check_xpaths(xpaths)
         path = check_path(path)
         url = driver.current_url
-        basename = get_basename(path, url)
-        if filename == None: filename = basename + ".png"
-        driver.save_screenshot(filename)
+        basename = get_basename(path, url, filename)
+        tempfd = tempfile.NamedTemporaryFile()
 
-        if ids:
-            get_ids(driver, basename, ids)
+        driver.save_screenshot(tempfd.name)
 
-        if xpaths:
-            get_xpaths(driver, basename, xpaths)
+        retval = []
+
+        if not ids and not xpaths:
+            retval += [("url", url, basename + ".png")]
+
+            shutil.copy2(tempfd.name, basename + ".png")
+        else:
+            if ids:
+                retval += get_ids(driver, tempfd, basename, ids)
+
+            if xpaths:
+                retval += get_xpaths(driver, tempfd, basename, xpaths)
+
+        tempfd.close()
+
+        return retval
 
     def get_data(driver, conf = None, filename = None):
         root_list = driver.find_elements_by_xpath("*")
