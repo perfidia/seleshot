@@ -56,8 +56,9 @@ def create(driver = None):
         return txt.translate(string.maketrans(':/', '--'))
 
     def get_basename(path, url, filename = None):
-        if filename and filename[-4:] == ".png":
-            filename = filename[:-4].rpartition(os.sep)[-1]
+        if filename:
+            if filename[-4:] == ".png":
+                filename = filename[:-4].rpartition(os.sep)[-1]
         else:
             if isinstance(url, unicode):
                 url = str(url)
