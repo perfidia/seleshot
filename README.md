@@ -4,7 +4,7 @@
 Description
 -----------
 
-TODO
+Simple tool that allows to capture a screenshot from a browser.
 
 Installation
 ------------
