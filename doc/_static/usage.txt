@@ -6,32 +6,6 @@ Below a number of usage examples are presented.
 Please note that SeleShot always takes screen of a whole website,
 even if *id* or *xpath* is specified.
 
-Command line
-------------
-
-* Screen of searchbox (element with attribute id = *searchbox*)
-
-    .. code-block:: bash
-
-        python seleshot.py -u http://www.python.org/ -i searchbox
-
-* Screens of two elements (*content-panel* and *left-panel*), ids is separated by space
-
-    .. code-block:: bash
-
-        python seleshot.py -u http://www.kinyen.pl/ -i content-panel left-panel
-
-* Screen of menu elements by using *xpath*
-
-    .. code-block:: bash
-
-        python seleshot.py -u http://www.python.org/ -x ".//*[@id='menu']/ul/li"
-
-* Multiple screens of menu elements using *xpath* (elements are separated by a space)
-
-    .. code-block:: bash
-
-        python seleshot.py -u http://www.python.org/ -x ".//*[@id='menu']/ul/li[1]" ".//*[@id='menu']/ul/li[2]"
 
 Standalone application
 ----------------------
@@ -43,57 +17,98 @@ The code below shows how to create a simple application which takes a screen sho
     from seleshot import create
 
     s = create()
-    s.get_screen(url="http://www.python.org", ids = ["searchbox"])
+    s.get_screen(url="http://www.python.org").save(path)
     s.close()
 
-This code shows how to use highlight and zoom_in functions. In zoom_in function you do not have to specity url parameter, then
-the driver does not refresh the page and you can zoom in highlighted elements.
+This code shows how to use cut_element and cut_area functions.
 
 .. code-block:: python
 
     from seleshot import create
 
-    xpaths =  [".//*[@id='content']/h1", ".//*[@id='menu']/ul/li[3]/a"]
-    ids = ["submit"]
+    xpath =  ".//*[@id='mainnav']/ul/li"
+    id = "submit"
+    url = 'http://www.python.org'
+	
+	s = create()
+	i = s.get_screen(url)
+	
+    i.cut_element(id = id).save('cut1.png')
+    i.cut_element(xpath = xpath).save('cut2.png')
+	
+	i.cut_area(height = 100).save("area1.png")
+    i.cut_area(200, 300, 250, 350).save('area2.png')
+    i.cut_area(200, 300, 250, 350).cut_area(60, 60, 50, 50).save("area3.png")
+	
+    s.close()
+
+This code shows how to use draw_dot and draw_frame functions.
+
+.. code-block:: python
+
+    from seleshot import create
+    
+	s = create()
+    xpath = ".//*[@id='mainnav']/ul/li"
+    id = "submit"
     url = 'http://www.python.org'
 
-    s.highlight(url = url, xpaths = xpaths, frame = True, color = 'yellow')
-    s.zoom_in(ids = ids, xpaths = xpaths, zoom_factor = 5)
+    i = s.get_screen(url)
+   
+    i.draw_frame(id = id,padding = 10, color='yellow',size= 5).save('frame1.png')
+    i.draw_frame(coordinates=(500,500,40,50), color='green').save('frame2.png')
+	
+    i.cut_area(200, 300, 250, 350).draw_dot(coordinates = (50, 50), padding = 3, color = 'yellow', size = 5).draw_dot(
+        coordinates = (60, 20), padding = 4, color = 'red', size = 10).save('dot1.png')
+		
+    i.draw_dot(id='touchnav-wrapper',padding= 10, size=100).save("dot2.png")
+    i.draw_dot(id='submit',padding= 1, size=3).save("dot3.png")
     s.close()
 
-Selenium tests
---------------
 
-The code below shows how to create a test which takes a screen shot of a webpage.
+This code shows how to use draw_image function.
 
 .. code-block:: python
 
     from seleshot import create
+    
+	s = create()
+    url = 'http://www.python.org'
 
-    class Test(unittest.TestCase):
-        def setUp(self):
-            self.s = seleshot.create()
+    i = s.get_screen(url)
+   
+	i.cut_element(id = 'submit').save('cut1.png')
+    i.cut_element(xpath = ".//*[@id='mainnav']/ul/li").save('cut2.png')
+   
+	i.draw_image(id = 'submit', padding = (0, 0), position = i.Position.OUTSIDE | i.Position.BOTTOM, filename = 'cut1.png').save("image1OB.png")
+    i.draw_image(xpath = ".//*[@id='mainnav']/ul/li", padding = (15, 10), position = i.Position.OUTSIDE | i.Position.TOP, filename = 'cut2.png').save("image2OT.png")
+    i.draw_image(id = 'touchnav-wrapper', padding = (15, 10), position = i.Position.OUTSIDE | i.Position.LEFT, filename = 'cut2.png').save("image3OL.png")
+    i.draw_image(coordinates = (100, 200), padding = (0, 0), position = i.Position.OUTSIDE | i.Position.RIGHT, filename = 'cut1.png').save("image4Cor.png")
+	
+    s.close()
+	
+This code shows how to use draw_zoom and draw_blur functions.
 
-        def tearDown(self):
-            self.s.close()
+.. code-block:: python
 
-        def test_get_data(self):
-            self.s.get_data('http://www.kinyen.pl/', 'ALL', 'dump.txt')
-            self.s.get_screen('http://www.kinyen.pl/', xpaths = l)
+    from seleshot import create
+    
+	s = create()
+    url = 'http://www.python.org'
 
-Webdriver Remote
-----------------
+    i = s.get_screen(url)
+   
+	i.cut_element(id = 'submit').save('cut1.png')
+    i.cut_element(xpath = ".//*[@id='mainnav']/ul/li").save('cut2.png')
+   
+    i.draw_blur(id = 'submit').save('blur1.png')
+    i.draw_blur(xpath = ".//*[@id='mainnav']/ul/li").save('blur2.png')
+	
+	i.draw_zoom(id = 'submit', padding = (0, 5), position = i.Position.OUTSIDE | i.Position.BOTTOM, zoom = 0.5).save("zoom1OB.png")
+    i.draw_zoom(xpath = ".//*[@id='mainnav']/ul/li", padding = (15, 10), position = i.Position.OUTSIDE | i.Position.TOP, zoom = 0.5).save("zoom2OT.png")
+    i.draw_zoom(id = 'touchnav-wrapper', padding = (15, 10), position = i.Position.OUTSIDE | i.Position.LEFT, zoom = 0.5).save("zoom3OL.png")
 
-To use selenium-server-standalone you have to provide url where the server is located
+    i.draw_zoom(id = 'submit', padding = (0, 5), position = i.Position.OUTSIDE | i.Position.BOTTOM, zoom = 2).save("zoom4OB.png")
 
-* Screen of searchbox (element with attribute id = *searchbox*) but webdriver is located on *selenium-server-standalone*
-
-    .. code-block:: bash
-
-        python seleshot.py -u http://www.python.org/ -i searchbox -r http://127.0.0.1:4444/wd/hub
-
-* Screen of menu elements with specified *xpath* and url to *selenium-server-standalone*
-
-    .. code-block:: bash
-
-        python seleshot.py -u http://www.python.org/ -x ".//*[@id='menu']/ul/li" -r http://127.0.0.1:4444/wd/hub
+    s.close()
+	

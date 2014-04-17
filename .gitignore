@@ -38,3 +38,8 @@ nosetests.xml
 doc/_build
 
 *.png
+*.orig
+
+# Idea files
+.idea
+.idea/*

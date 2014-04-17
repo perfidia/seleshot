@@ -6,109 +6,63 @@ Created on May 5, 2011
 
 @author: Radoslaw Palczynski, Grzegorz Bilewski et al.
 '''
-
-import re
 import os
+
 import sys
-import string
 import argparse
 import tempfile
-import shutil
 import Image
 import ImageDraw
+import ImageFilter
 from selenium import webdriver
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.common.exceptions import NoSuchElementException
 from types import MethodType
 
+
 def create(driver = None):
     # hiding everything from the world, buahaha ^_^
+    """
+    Creates an instance of Seleshot object.
+
+    :param driver: Web driver for the site
+    :type driver: WebDriver
+    :returns: Driver of Selenium
+    :rtype: WebDriver
+    """
+
     def check_url(url):
+        """
+        Check provided url is valid.
+
+        :param url: URL - string
+        :type url: string
+        :returns: Valid URL
+        :rtype: string
+        :raises: ValueError
+        """
+
         if not isinstance(url, basestring):
             raise ValueError("i don't understand your url :(")
 
-        if url[:7] != "http://":
+        if not url.startswith("http://"):
             raise ValueError("http protocol is required")
 
         return url
 
-    def check_ids(ids):
-        if ids == None:
-            ids = []
-
-        return ids
-
-    def check_xpaths(xpaths):
-        if xpaths == None:
-            xpaths = []
-
-        return xpaths
-
-    def check_path(path):
-        if path == None:
-            path = os.getcwd()
-        elif not os.path.exists(path):
-            os.makedirs(path)
-
-        return path
-
-    def translate(txt):
-        return txt.translate(string.maketrans(':/', '--'))
-
-    def get_basename(path, url, filename = None):
-        if filename:
-            if filename[-4:] == ".png":
-                filename = filename[:-4].rpartition(os.sep)[-1]
-        else:
-            if isinstance(url, unicode):
-                url = str(url)
-
-            if url[:7] == "http://":
-                url = url[7:]
-
-            if url[-1] == "/":
-                url = url[:-1]
-
-            filename = translate(url)
-
-        return os.path.join(path, filename)
-
-    def get_next_filename(filename, prefix):
-        highlighted_files = []
-        files = os.listdir(os.getcwd())
-        for f in files:
-            if f.find(prefix) != -1:
-                highlighted_files.append(f)
-        highlighted_files.sort(key = lambda s: len(s))
-        if highlighted_files:
-            indexOfNumber = highlighted_files[-1].find('[') + 1
-            filename += "-" + prefix + "[" + str(int(highlighted_files[-1][indexOfNumber:-5]) + 1) + "].png"
-        else:
-            filename += "-" + prefix + "[1].png";
-        return filename
-
-    def get_filename(xpath, basename, web_element, index = None):
-        xpath = re.sub(r'[/]+', "_", xpath)
-        xpath2 = re.sub(r'[\\/:"*?<>|]+', "", xpath)
-        filename = [basename, "-", xpath2]
-
-        if xpath[-1] == '*':
-            filename.append(web_element.tag_name)
-#             filename.append("[")
-#             filename.append(str(index + 1))
-#             filename.append("]")
-        elif xpath[-1] == ']':
-            pass
-#         else:
-#             filename.append("[")
-#             filename.append(str(index + 1))
-#             filename.append("]")
-
-        filename.append(".png")
-
-        return "".join(filename)
-
     def get_web_element_by_id(driver, id):
+        """
+        Get web element by id.
+
+        :param driver: Web Driver
+        :type driver: WebDriver
+        :param id: id to find WebElement
+        :type id: string
+        :returns: WebElement from WebDriver
+        :rtype: WebElement
+        :raises: NoSuchElementException
+        """
+        element = None
         try:
             element = driver.find_element_by_id(id)
 
@@ -120,6 +74,19 @@ def create(driver = None):
         return element
 
     def get_web_element_by_xpath(driver, xpath):
+        """
+        Get web element by xpath.
+
+        :param driver: Web Driver
+        :type driver: WebDriver
+        :param xpath: xpath to find WebElement
+        :type xpath: string
+        :returns: WebElement from WebDriver
+        :rtype: WebElement
+        :raises: NoSuchElementException
+        """
+
+        element = None
         try:
             element = driver.find_element_by_xpath(xpath)
 
@@ -131,304 +98,543 @@ def create(driver = None):
         return element
 
     def get_web_element_box_size(web_element):
+        """
+        Get coordinates of the WebElement.
+
+        :param web_element: Element of the web site
+        :type web_element: WebElement
+        :returns: coordinates of WebElement in box
+        :rtype: tuple
+        """
         location = web_element.location
         size = web_element.size
         left = location['x']
         right = location['x'] + size['width']
         top = location['y']
         down = location['y'] + size['height']
-        box = (left, top, right, down) # box of region to crop
+        # box of region to crop
+        box = (left, top, right, down)
         return box
 
-    def calculate_new_image_size(main_image, web_elements, zoom_factor, extra_x_size, border_size):
-        max_x = 0
+    def get_screen(driver):
+        """
+        Get screen shoot and save it in a temporary file
 
-        for web_element in web_elements:
-            max_x = max((web_element.size['width'] + border_size * 2) * zoom_factor, max_x)
-
-        result = (main_image.size[0] + max_x + extra_x_size, main_image.size[1])
-        return result
-
-    def draw_lines_between_elements(image, element1_box, element2_box):
-        draw = ImageDraw.Draw(image)
-        draw.line((element1_box[2], element1_box[1], element2_box[0], element2_box[1]), fill = (0, 100, 0))
-        draw.line((element1_box[2], element1_box[3], element2_box[0], element2_box[3]), fill = (0, 100, 0))
-
-    def get_ids(driver, tempfd, basename, ids):
-        retval = []
-
-        image = Image.open(tempfd.name)
-
-        for id in ids:
-            element = get_web_element_by_id(driver, id)
-
-            box = get_web_element_box_size(element)
-            region = image.crop(box)
-            filename = basename + "-" + translate(id) + ".png"
-            region.save(filename)
-
-            retval.append(('id', id, filename))
-
-        return retval
-
-    def get_xpaths(driver, tempfd, basename, xpaths):
-        retval = []
-
-        image = Image.open(tempfd.name)
-
-        for xpath in xpaths:
-            element = get_web_element_by_xpath(driver, xpath)
-
-            box = get_web_element_box_size(element)
-            region = image.crop(box)
-            filename = get_filename(xpath, basename, element)
-
-            region.save(filename)
-
-            retval.append(('xpath', xpath, filename))
-
-        return retval
-
-    def highlight(driver, url, ids = None, xpaths = None, color = '', frame = False, text = '', arrow = False):
-        ids = check_ids(ids)
-        xpaths = check_xpaths(xpaths)
-        path = os.getcwd()
-        url = driver.current_url
-        basename = get_basename(path, url)
-        filename = get_next_filename(basename, 'highlighted')
-
-        web_elements = []
-        for i in ids:
-            web_elements.append(get_web_element_by_id(driver, i))
-        for xpath in xpaths:
-            web_elements.append(get_web_element_by_xpath(driver, xpath))
-
-        for web_element in web_elements:
-            if frame and arrow:
-                driver.execute_script(scriptFrameAndArrow, web_element, color, text)
-
-            if frame:
-                driver.execute_script(scriptFrame, web_element, color, text)
-            elif arrow:
-                driver.execute_script(scriptArrow, web_element, color, text)
-            else:
-                driver.execute_script(scriptLabel, web_element, color, text)
-
-        driver.save_screenshot(filename)
-
-    def zoom_in(driver, ids = None, xpaths = None, zoom_factor = 2):
-        ids = check_ids(ids)
-        xpaths = check_xpaths(xpaths)
-        path = os.getcwd()
-        url = driver.current_url
-        basename = get_basename(path, url)
-
-        web_elements = []
-        for i in ids:
-            web_elements.append(get_web_element_by_id(driver, i))
-        for xpath in xpaths:
-            web_elements.append(get_web_element_by_xpath(driver, xpath))
-
-        filename = get_next_filename(basename, 'zoomed')
-        driver.save_screenshot(filename)
-        image = Image.open(filename)
-
-        extra_x_size = 100
-        element_border_size = 5
-        new_image = Image.new('RGB', (calculate_new_image_size(image, web_elements, zoom_factor, extra_x_size, element_border_size)))
-        new_image.paste(image, (0, 0))
-
-        offset_y = 10
-        for i in xrange(len(web_elements)):
-            box = get_web_element_box_size(web_elements[i])
-            box = (box[0] - element_border_size, box[1] - element_border_size, box[2] + element_border_size, box[3] + element_border_size)
-            region = image.crop(box)
-            new_size = ((region.size[0]) * zoom_factor, (region.size[1]) * zoom_factor)
-            region = region.resize(new_size)
-            new_image.paste(region, (image.size[0] + extra_x_size / 2, offset_y))
-
-            box2 = (image.size[0] + extra_x_size / 2, offset_y, image.size[0] + extra_x_size / 2 + new_size[0], offset_y + new_size[1])
-            draw_lines_between_elements(new_image, get_web_element_box_size(web_elements[i]), box2)
-
-            offset_y += (web_elements[i].size['height'] + element_border_size * 2) * zoom_factor + 10
-
-        new_image.save(filename)
+        :param driver: Web Driver
+        :type driver: WebDriver
+        :returns: Screen shot
+        :rtype: ImageContainer
+        """
+        tempfd = tempfile.NamedTemporaryFile(mode = 'w+b', delete = False)
+        driver.save_screenshot(tempfd.name)
+        temp_filename = tempfd.name
+        tempfd.close()
+        return ImageContainer(temp_filename, driver)
 
     class ScreenShot(object):
         def __init__(self, driver):
             self.driver = driver
 
-        def get_screen(self, url = None, ids = None, xpaths = None, path = None, filename = None):
-            '''
+        def get_screen(self, url = None):
+            """
             Get specified screen(s)
 
-            @param url: webpage to capture (including http protocol, None to reuse loaded webpage)
-            @param ids: list of ids on the web page to capture
-            @param xpaths: list of xpath on the web page to capture
-            @param path: path where to save screen shots
-            @param filename: custom filename
-            '''
+            :param url: web page to capture (including http protocol, None to reuse loaded webpage)
+            :type url: string
+            :returns: Screen shot
+            :rtype: ImageContainer
+            :raises: Exception
+            """
 
-            if url != None:
+            if url is not None:
                 url = check_url(url)
                 self.driver.get(url)
             elif self.driver.current_url == "about:blank":
                 raise Exception("No page loaded")
 
-            return get_screen(self.driver, ids, xpaths, path, filename)
-
-        def get_data(self, url, conf = None, filename = None):
-            '''
-            Get information about elements on a web page.
-
-            @param url: webpage to capture (including http protocol)
-            @param conf: configuration of storing elements, store only elements with ids if conf is in [None, "ID"]; store everything (ids and classes) if conf is in ["ALL"]
-            @param filename: a location of a file where to store collected data
-
-            @return: list of tuples with elements
-            '''
-            url = check_url(url)
-            self.driver.get(url)
-
-            return get_data(self.driver, conf, filename)
-
-        def highlight(self, url, ids = None, xpaths = None, color = '', frame = False, text = '', arrow = False):
-            '''
-            Highlight specified elements on a page
-
-            @param url: webpage to capture (including http protocol)
-            @param ids: list of ids on the web page
-            @param xpaths: list of xpath on the web pag
-            @param color: specified webelement color
-            @param frame: boolean value indicating if to draw a frame around the webelement
-            @param text: optional text which would be draw next to the highlighted webelement
-            @param arrow: boolean value indicating if to draw an arrow next to the webelement
-
-            '''
-            url = check_url(url)
-            self.driver.get(url)
-            highlight(self.driver, url, ids, xpaths, color, frame, text, arrow)
-
-            return "TODO"
-
-        def zoom_in(self, url = False, ids = None, xpaths = None, zoom_factor = 2):
-            '''
-            Zoomed in specified webelements
-
-            @param url: webpage to capture (including http protocol), if url is false there is no page refresh
-            @param ids: list of ids on the web page
-            @param xpaths: list of xpath on the web pag
-            @param zoom_factor: factor of zooming
-
-            '''
-            if url == True:
-                url = check_url(url)
-                self.driver.get(url)
-
-            zoom_in(self.driver, ids, xpaths, zoom_factor)
-
-            return "TODO"
+            return get_screen(self.driver)
 
         def close(self):
             self.driver.close()
 
-    def get_screen(driver, ids = None, xpaths = None, path = None, filename = None):
-        # print "WebDriver"
+    class ImageContainer(object):
+        """
+        Enumeration of possible positions:
 
-        ids = check_ids(ids)
-        xpaths = check_xpaths(xpaths)
-        path = check_path(path)
-        url = driver.current_url
-        basename = get_basename(path, url, filename)
-        tempfd = tempfile.NamedTemporaryFile()
+        * MIDDLE
+        * INSIDE
+        * OUTSIDE
+        * BORDER
+        * LEFT
+        * RIGHT
+        * TOP
+        * BOTTOM
 
-        driver.save_screenshot(tempfd.name)
+        Example of usage::
 
-        retval = []
+        position = Position.OUTSIDE | Position.LEFT
+        """
 
-        if not ids and not xpaths:
-            retval += [("url", url, basename + ".png")]
+        MIDDLE = 1
+        INSIDE = 2
+        OUTSIDE = 4
+        BORDER = 8
+        LEFT = 16
+        RIGHT = 32
+        TOP = 64
+        BOTTOM = 128
 
-            shutil.copy2(tempfd.name, basename + ".png")
-        else:
-            if ids:
-                retval += get_ids(driver, tempfd, basename, ids)
+        def __init__(self, image, driver, cut = False):
+            """
+            Constructor for ImageContainer.
 
-            if xpaths:
-                retval += get_xpaths(driver, tempfd, basename, xpaths)
+            :param image: In this parameter you can provide Image object or a path to Image
+            :type image: Image or string
+            :param driver: WebDriver object
+            :type driver: WebDriver
+            :param cut: True - image was cut one or more times, False - there were not any cut operation
+            :type cut: boolean
+            :raises: ValueError
+            """
+            self.__cut = cut
+            self.driver = driver
+            if image is None:
+                raise ValueError("Image required")
+            elif isinstance(image, Image.Image):
+                self.image = image
+            else:
+                self.filename = image
+                self.image = Image.open(self.filename)
 
-        tempfd.close()
+        def cut_element(self, id = None, xpath = None):
+            """
+            Cut one element by id or xpath. After this operation you cannot cut more elements.
 
-        return retval
+            :param id: id of a given element
+            :type id: string
+            :param xpath: xpath of a given element
+            :type xpath: string
+            :returns: ImageContainer
+            :rtype: ImageContainer
+            :raises: RuntimeError, ValueError
+            """
+            if self.__cut is True:
+                raise RuntimeError('Element can be cut only once')
+            if id is not None:
+                element = get_web_element_by_id(self.driver, id)
+            elif xpath is not None:
+                element = get_web_element_by_xpath(self.driver, xpath)
+            else:
+                raise ValueError("Please provide id or xpath.")
+            if element is None:
+                raise ValueError("There is no such element")
+            box = get_web_element_box_size(element)
+            new_image = self.image.crop(box)
+            return ImageContainer(new_image, self.driver, True)
 
-    def get_data(driver, conf = None, filename = None):
-        root_list = driver.find_elements_by_xpath("*")
-        all_elements = []
-        get_elements_recursive(root_list[0], all_elements, conf)
+        def cut_area(self, x = 0, y = 0, height = None, width = None):
+            """
+            Cut area from a given point to a given size (in px)
 
-        if not filename:
-            filename = "default_dump.txt"
+            :param x: x coordinate for a point
+            :type x: integer
+            :param y: y coordinate for a point
+            :type y: integer
+            :param height: height of an area
+            :type height: integer or None
+            :param width: width of an area
+            :type width: integer or None
+            :returns: ImageContainer
+            :rtype: ImageContainer
+            """
+            height = height if height is not None else self.image.size[1] - y
+            width = width if width is not None else self.image.size[0] - x
+            box = (x, y, width + x, height + y)
+            new_image = self.image.crop(box)
+            return ImageContainer(new_image, self.driver, True)
 
-        fd = open(os.path.join(os.getcwd(), filename), "w")
-        save_webelements_to_file(all_elements, fd)
-        fd.close()
+        def draw_dot(self, id = None, xpath = None, coordinates = None, position = MIDDLE, padding = (0, 0), color = None, size = None):
+            """
+            For id and xpath:
+                Draw a red dot on a given position of a given element.
+            For coordinates:
+                Draw a red dot in a given point (x, y)
 
-        return all_elements
+            :param id: id of a given element
+            :type id: string
+            :param xpath: xpath of a given element
+            :type xpath: string
+            :param coordinates: coordinates = (x, y) - center of a dot
+            :type coordinates: tuple of integers (x, y)
+            :param position: position of a dot
+            :type position: Position enum
+            :param padding: padding between dot and element
+            :type padding: tuple of integers (x, y)
+            :param color: color of dot
+            :type color: color object or string
+            :param size: size of dot
+            :type size: integer
+            :returns: ImageContainer
+            :rtype: ImageContainer
+            :raises: ValueError
+            """
+            color = color if color is not None else "red"
+            size = size if size is not None else 1
+            padding = padding if padding is not None else (0, 0)
+            new_image = self.image.copy()
+            draw = ImageDraw.Draw(new_image)
+            if not isinstance(padding, tuple) or len(padding) is not 2:
+                raise ValueError("Padding values are not correct.")
+            if id is not None and self.__cut is False:
+                my_element = get_web_element_by_id(self.driver, id)
+                if my_element is None:
+                    raise ValueError("There is no such element")
+                box = get_web_element_box_size(my_element)
+            elif xpath is not None and self.__cut is False:
+                my_element = get_web_element_by_xpath(self.driver, xpath)
+                if my_element is None:
+                    raise ValueError("There is no such element")
+                box = get_web_element_box_size(my_element)
+            elif coordinates is not None:
+                box = (coordinates[0] - size + padding[0],
+                       coordinates[1] - size + padding[1],
+                       coordinates[0] + size + padding[0],
+                       coordinates[1] + size + padding[1])
+                draw.ellipse(box, fill = color, outline = color)
+                return ImageContainer(new_image, self.driver)
+            else:
+                del draw
+                raise ValueError("Please provide id or xpath or coordinates")
+            return self.__draw_element(box, size, size, 0, 0, position, padding, new_image, None, ellipse = True, color = color)
 
-    def get_elements_recursive(webelement, all_elements, conf, current_xpath = "/html"):
-        return_elements = []
-        children_list = webelement.find_elements_by_xpath("*")
-        element_numbers = {child.tag_name: 0 for child in children_list}
+        def draw_frame(self, id = None, xpath = None, coordinates = None, padding = None, color = None, size = None):
+            """
+            For id and xpath:
+                Draw a frame around a given element
+            For coordinates:
+                Draw a frame for a given coordinates
 
-        if(children_list == []):
-            return webelement
-        else:
-            for child in children_list:
-                element_numbers[child.tag_name] += 1
-                xpath = str(current_xpath) + "/" + str(child.tag_name) + "[" + str(element_numbers[child.tag_name]) + "]"
-                create_new_tuple(child, xpath, all_elements, conf)
-                return_elements.append(get_elements_recursive(child, all_elements, conf, xpath))
-            return return_elements
+            :param id: id of a given element
+            :type id: string
+            :param xpath: xpath of a given element
+            :type xpath: string
+            :param coordinates: coordinates for a frame - coordinates = (x, y, width, height) - middle of a dot
+            :type coordinates: tuple of integers - (x, y, width, height)
+            :param padding: padding between frame and element
+            :type padding: tuple of integers (x, y)
+            :param color: color of frame
+            :type color: color object or string
+            :param size: size of frame (thickness)
+            :type size: integer
+            :returns: ImageContainer
+            :rtype: ImageContainer
+            :raises: ValueError
+            """
+            color = color if color is not None else "red"
+            size = size if size is not None else 0
+            new_image = self.image.copy()
+            draw = ImageDraw.Draw(new_image)
+            if id is not None and self.__cut is False:
+                my_element = get_web_element_by_id(self.driver, id)
+                if my_element is None:
+                    raise ValueError("There is no such element")
+                box = [i for i in get_web_element_box_size(my_element)]
+            elif xpath is not None and self.__cut is False:
+                my_element = get_web_element_by_xpath(self.driver, xpath)
+                if my_element is None:
+                    raise ValueError("There is no such element")
+                box = [i for i in get_web_element_box_size(my_element)]
+            elif coordinates is not None:
+                box = [
+                    coordinates[0] - int(coordinates[2] / 2),
+                    coordinates[1] - int(coordinates[3] / 2),
+                    coordinates[0] + int(coordinates[2] / 2),
+                    coordinates[1] + int(coordinates[3] / 2)
+                ]
+            else:
+                del draw
+                raise ValueError("Please provide id or xpath or coordinates")
+            if padding is not None:
+                box[0] = box[0] - padding
+                box[1] = box[1] - padding
+                box[2] = box[2] + padding
+                box[3] = box[3] + padding
+            frame = ((box[0], box[1]), (box[2], box[1]), (box[2], box[3]), (box[0], box[3]), (box[0], box[1]))
+            draw.line(frame, fill = color, width = size)
+            draw.line(((box[0] - size / 2, box[1]), (box[2] + size / 2, box[1])), fill = color, width = size)
+            draw.line(((box[2] + size / 2, box[3]), (box[0] - size / 2, box[3])), fill = color, width = size)
+            return ImageContainer(new_image, self.driver)
 
-    def create_new_tuple(webelement, xpath, all_elements, conf):
-        if webelement.get_attribute("id") and (conf in ["ID", None]):
-            newTuple = xpath, webelement.location["x"], webelement.location["y"], webelement.size["width"], webelement.size["height"], str(webelement.get_attribute("id"))
-            all_elements.append(newTuple)
-        elif webelement.get_attribute("id") and webelement.get_attribute("class") and (conf in ["ALL"]):
-            newTuple = xpath, webelement.location["x"], webelement.location["y"], webelement.size["width"], webelement.size["height"], str(webelement.get_attribute("class")), str(
-                webelement.get_attribute("id"))
-            all_elements.append(newTuple)
-        elif webelement.get_attribute("id") and (conf in ["ALL"]):
-            newTuple = xpath, webelement.location["x"], webelement.location["y"], webelement.size["width"], webelement.size["height"], str(webelement.get_attribute("id"))
-            all_elements.append(newTuple)
-        elif webelement.get_attribute("class") and (conf in ["ALL"]):
-            newTuple = xpath, webelement.location["x"], webelement.location["y"], webelement.size["width"], webelement.size["height"], str(webelement.get_attribute("class"))
-            all_elements.append(newTuple)
-        elif conf in ["ALL"]:
-            newTuple = xpath, webelement.location["x"], webelement.location["y"], webelement.size["width"], webelement.size["height"]
-            all_elements.append(newTuple)
+        def draw_image(self, id = None, xpath = None, coordinates = None, position = MIDDLE, padding = (0, 0), filename = None, image = None):
+            """
+            For id and xpath:
+                Draw an image on a given position of a given element.
+            For coordinates:
+                Draw an image in a given point (x, y)
 
-    def save_webelements_to_file(webelements, fd):
-        fd.write("[\n")
+            :param id: id of a given element
+            :type id: string
+            :param xpath: xpath of a given element
+            :type xpath: string
+            :param coordinates: coordinates = (x, y) - center of an image
+            :type coordinates: tuple of integers (x, y)
+            :param position: position of an image
+            :type position: Position enum
+            :param padding: padding between dot and element
+            :type padding: tuple of integers (x, y)
+            :param filename: filename of the image file
+            :type filename: string
+            :param image: reference to Image object
+            :type image: Image object
+            :returns: ImageContainer
+            :rtype: ImageContainer
+            :raises: ValueError
+            """
+            new_image = self.image.copy()
+            draw = ImageDraw.Draw(new_image)
+            if not isinstance(padding, tuple) or len(padding) is not 2:
+                raise ValueError("Padding values are not correct.")
+            if filename is not None:
+                image = Image.open(filename)
+            else:
+                if image is None:
+                    raise ValueError("Please provide filename of an image.")
+            if id is not None and self.__cut is False:
+                my_element = get_web_element_by_id(self.driver, id)
+                if my_element is None:
+                    raise ValueError("There is no such element")
+                box = get_web_element_box_size(my_element)
+            elif xpath is not None and self.__cut is False:
+                my_element = get_web_element_by_xpath(self.driver, xpath)
+                if my_element is None:
+                    raise ValueError("There is no such element")
+                box = get_web_element_box_size(my_element)
+            elif coordinates is not None:
+                box = (coordinates[0] + padding[0],
+                       coordinates[1] + padding[1],
+                       coordinates[0] + padding[0] + image.size[0],
+                       coordinates[1] + padding[1] + image.size[1])
+                new_image.paste(image, box)
+                return ImageContainer(new_image, self.driver)
+            else:
+                del draw
+                raise ValueError("Please provide id or xpath or coordinates")
 
-        for i in xrange(len(webelements)):
-            fd.write("\t" + str(webelements[i]) + ",\n")
+            size_x = image.size[0] / 2
+            size_y = image.size[1] / 2
+            remainder_x = 0
+            remainder_y = 0
+            if image.size[0] % 2 is not 0:
+                remainder_x = 1
+            if image.size[1] % 2 is not 0:
+                remainder_y = 1
+            return self.__draw_element(box, size_x, size_y, remainder_x, remainder_y, position, padding, new_image, image, ellipse = False)
 
-        fd.write("]\n")
+        def draw_zoom(self, id = None, xpath = None, coordinates = None, position = MIDDLE, padding = (0, 0), zoom = None):
+            """
+            For id and xpath:
+                Draw a zoomed image on a given position of a given element.
+            For coordinates:
+                Draw a zoomed element in a given point (x, y).
+
+            :param id: id of a given element
+            :type id: string
+            :param xpath: xpath of a given element
+            :type xpath: string
+            :param coordinates: coordinates = (x, y) - center of a zoomed image
+            :type coordinates: tuple of integers (x, y)
+            :param position: position of a zoomed image
+            :type position: Position enum
+            :param padding: padding between dot and element
+            :type padding: tuple of integers (x, y)
+            :param zoom: zoom size of an element
+            :type zoom: integer
+            :returns: ImageContainer
+            :rtype: ImageContainer
+            """
+            image = self.cut_element(id = id, xpath = xpath).image
+            if zoom is None or zoom <= 0:
+                zoom = 1
+            width = int(image.size[0] / zoom)
+            height = int(image.size[1] / zoom)
+            image = image.resize((width, height), Image.ANTIALIAS)
+            new_image = self.draw_image(id = id, xpath = xpath, coordinates = coordinates, position = position, padding = padding, image = image).image
+            return ImageContainer(new_image, self.driver)
+
+        def draw_blur(self, id = None, xpath = None):
+            """
+            Blur whole area of the screenshot except a given element.
+
+            :param id: id of a given element
+            :type id: string
+            :param xpath: xpath of a given element
+            :type xpath: string
+            :returns: ImageContainer
+            :rtype: ImageContainer
+            :raises: RuntimeError, ValueError
+            """
+            if self.__cut is True:
+                raise RuntimeError('Element can be selected only once')
+            if id is not None:
+                element = get_web_element_by_id(self.driver, id)
+            elif xpath is not None:
+                element = get_web_element_by_xpath(self.driver, xpath)
+            else:
+                raise ValueError("Please provide id or xpath.")
+            if element is None:
+                raise ValueError("There is no such element")
+            box = get_web_element_box_size(element)
+            new_image = self.image.crop(box)
+            blurred_image = self.image.filter(ImageFilter.BLUR)
+            blurred_image.paste(new_image, box)
+            return ImageContainer(blurred_image, self.driver)
+
+        def save(self, filename):
+            """
+            Save to a filename
+
+            :param filename: name of a file
+            :type filename: string
+            :returns: ImageContainer
+            :rtype: ImageContainer
+            """
+            self.image.save(filename, "PNG")
+            return self
+
+        def is_cut(self):
+            """
+            If True, then there is possibility to cut an element.
+            If False, then there is not possibility to cut any element.
+
+            :returns: possibility to cut
+            :rtype: boolean
+            """
+            return self.__cut
+
+        def __draw_element(self, box, size_x, size_y, remainder_x, remainder_y, position, padding, new_image, image, ellipse = False, color = None):
+            # distances from borders
+            """
+            Draw element - to draw image set ellipse on False.
+
+            :param box: Box of the element.
+            :type box: Tuple with 4 elements
+            :param size_x: Size from middle to the border on x
+            :type size_x: integer
+            :param size_y: Size from middle to the border on y
+            :type size_y: integer
+            :param remainder_x: Remainder of x scale
+            :type remainder_x: integer
+            :param remainder_y: Remainder of y scale
+            :type remainder_y: integer
+            :param position: position of an image
+            :type position: Position enum
+            :param padding: padding between dot and element
+            :type padding: tuple of integers (x, y)
+            :param new_image: New image of which will be create.
+            :type new_image: Image
+            :param image: Image which will be paste into another.
+            :type image: Image
+            :param ellipse: Draw dot.
+            :type ellipse: boolean
+            :param color: color of dot
+            :type color: color object or string
+            :returns: ImageContainer
+            :rtype: ImageContainer
+            """
+            border_x = int((box[2] - box[0]) / 2)
+            border_y = int((box[3] - box[1]) / 2)
+            # central point of element
+            x = box[0] + border_x
+            y = box[1] + border_y
+
+            inside_left = 0
+            inside_right = 0
+            inside_top = 0
+            inside_bottom = 0
+            outside_left = 0
+            outside_right = 0
+            outside_top = 0
+            outside_bottom = 0
+            border_left = 0
+            border_right = 0
+            border_top = 0
+            border_bottom = 0
+
+            if position == ImageContainer.INSIDE | ImageContainer.LEFT:
+                inside_left = -border_x + size_x
+            elif position == ImageContainer.INSIDE | ImageContainer.RIGHT:
+                inside_right = border_x - size_x
+            elif position == ImageContainer.INSIDE | ImageContainer.TOP:
+                inside_top = -border_y + size_y
+            elif position == ImageContainer.INSIDE | ImageContainer.BOTTOM:
+                inside_bottom = border_y - size_y
+            elif position == ImageContainer.OUTSIDE | ImageContainer.LEFT:
+                outside_left = -border_x - size_x
+            elif position == ImageContainer.OUTSIDE | ImageContainer.RIGHT:
+                outside_right = border_x + size_x
+            elif position == ImageContainer.OUTSIDE | ImageContainer.TOP:
+                outside_top = -border_y - size_y
+            elif position == ImageContainer.OUTSIDE | ImageContainer.BOTTOM:
+                outside_bottom = border_y + size_y
+            elif position == ImageContainer.BORDER | ImageContainer.LEFT:
+                border_left = -border_x
+            elif position == ImageContainer.BORDER | ImageContainer.RIGHT:
+                border_right = border_x
+            elif position == ImageContainer.BORDER | ImageContainer.TOP:
+                border_top = -border_y
+            elif position == ImageContainer.BORDER | ImageContainer.BOTTOM:
+                border_bottom = border_y
+
+            image_box = (
+                x - size_x + inside_left + inside_right + outside_left + outside_right + border_left + border_right +
+                padding[0] - remainder_x,
+                y - size_y + inside_top + inside_bottom + outside_top + outside_bottom + border_top + border_bottom +
+                padding[1] - remainder_y,
+                x + size_x + inside_left + inside_right + outside_left + outside_right + border_left + border_right +
+                padding[0],
+                y + size_y + inside_top + inside_bottom + outside_top + outside_bottom + border_top + border_bottom +
+                padding[1],)
+
+            # add additional space for an image
+            if image_box[0] < 0 or image_box[1] < 0 or image_box[2] > new_image.size[0] or image_box[3] > new_image.size[1]:
+                difference_left = -image_box[0] if image_box[0] < 0 else 0
+                difference_top = -image_box[1] if image_box[1] < 0 else 0
+                difference_right = image_box[2] - new_image.size[0] if image_box[2] > new_image.size[0] else 0
+                difference_bottom = image_box[3] - new_image.size[1] if image_box[3] > new_image.size[1] else 0
+                bigger_image = Image.new('RGB',
+                                         (new_image.size[0] + difference_left + difference_right,
+                                          new_image.size[1] + difference_top + difference_bottom),
+                                         "white")
+                bigger_image.paste(new_image, (difference_left, difference_top))
+                image_box = (image_box[0] + difference_left,
+                             image_box[1] + difference_top,
+                             image_box[2] + difference_left,
+                             image_box[3] + difference_top)
+                if ellipse:
+                    draw = ImageDraw.Draw(bigger_image)
+                    draw.ellipse(image_box, fill = color, outline = color)
+                    return ImageContainer(bigger_image, self.driver)
+                bigger_image.paste(image, image_box)
+                return ImageContainer(bigger_image, self.driver)
+            else:
+                if ellipse:
+                    draw = ImageDraw.Draw(new_image)
+                    draw.ellipse(image_box, fill = color, outline = color)
+                    return ImageContainer(new_image, self.driver)
+                new_image.paste(image, image_box)
+                return ImageContainer(new_image, self.driver)
+
+        def close(self):
+            """
+            Close the ImageContainer object
+            """
+            if len(self.filename) > 0:
+                os.remove(self.filename)
+            self.driver.close()
 
     #########################
     #          body         #
     #########################
-
-    scriptFrameAndArrow = """var element = arguments[0]; element.style.color = arguments[1]; element.style.outline = '2px dashed red';arrow = document.createElement('span'); arrow.style.width = '38px'; arrow.style.height = '45px';
-    arrow.style.background = 'url(http://www.elhostel.pl/images/arrow.png) no-repeat';arrow.style.display = 'inline-block'; element.appendChild(arrow);label = document.createElement('span'); label.style.color = 'red';label.innerHTML = arguments[2]; element.insertBefore(label,element.firstChild);"""
-
-    scriptFrame = """var element = arguments[0]; element.style.color = arguments[1];element.style.outline = '2px dashed red';label = document.createElement('span'); label.style.color = 'red';label.innerHTML = arguments[2]; element.insertBefore(label,element.firstChild);"""
-
-    scriptArrow = """var element = arguments[0]; element.style.color = arguments[1];arrow = document.createElement('span'); arrow.style.width = '38px'; arrow.style.height = '45px';arrow.style.background = 'url(http://www.elhostel.pl/images/arrow.png) no-repeat';
-    arrow.style.display = 'inline-block'; element.appendChild(arrow);label = document.createElement('span'); label.style.color = 'red';label.innerHTML = arguments[2]; element.insertBefore(label,element.firstChild);"""
-
-    scriptLabel = """var element = arguments[0]; element.style.color = arguments[1]; label = document.createElement('span'); label.style.color = 'red';label.innerHTML = arguments[2]; element.insertBefore(label,element.firstChild);"""
 
     if driver is None:
         # no parameter provided, create the default driver
@@ -441,11 +647,8 @@ def create(driver = None):
         if "get_screen" not in dir(driver):
             driver.get_screen = MethodType(get_screen, driver, driver.__class__)
 
-        if "get_data" not in dir(driver):
-            driver.get_data = MethodType(get_data, driver, driver.__class__)
-
         return driver
-    elif isinstance(driver, WebDriver) == False and isinstance(driver, type) == True:
+    elif isinstance(driver, WebDriver) is False and isinstance(driver, type) is True:
         # a class
         # will create an instance and rerun create function to add get_screen function
 
@@ -453,12 +656,18 @@ def create(driver = None):
     else:
         raise Exception("There is something strange with the driver, will you check it?")
 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description = 'Takes a screen shot of a web page.')
-    parser.add_argument('-u', '--url', dest = "url", help = "url to web page (including http protocol)", required = True)
-    parser.add_argument('-i', '--ids', dest = "ids", help = "list of ids on the web page separated by a space character", nargs = '+')
-    parser.add_argument('-x', '--xpath', dest = "xpath", help = "list of xpath on the web page separated by a space character", nargs = '+')
-    parser.add_argument('-d', '--path', dest = "path", help = "path to save directory; default as run script", default = ".")
+    parser.add_argument('-u', '--url', dest = "url", help = "url to web page (including http protocol)",
+                        required = True)
+    parser.add_argument('-i', '--ids', dest = "ids",
+                        help = "list of ids on the web page separated by a space character",
+                        nargs = '+')
+    parser.add_argument('-x', '--xpath', dest = "xpath",
+                        help = "list of xpath on the web page separated by a space character", nargs = '+')
+    parser.add_argument('-d', '--path', dest = "path", help = "path to save directory; default as run script",
+                        default = ".")
     parser.add_argument('-r', '--remoteUrl', dest = "remoteUrl", help = "url of selenium-server-standalone")
     # parser.add_argument('-f', '--format', dest="format", help="choose a code's output [opt: xml, json]", default=None)
 
@@ -472,11 +681,11 @@ if __name__ == '__main__':
         s = create(webdriver.Remote(command_executor = args.remoteUrl, desired_capabilities = {
             "browserName": "firefox",
             "platform": "ANY",
-            }))
+        }))
         s.get(args.url)
         s.get_screen(args.ids, args.xpath, args.path)
     else:
         s = create()
-        s.get_screen(args.url, args.ids, args.xpath, args.path)
+        s.get_screen(args.url).save("/shot_example.png")
 
     s.close()

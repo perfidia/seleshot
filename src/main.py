@@ -3,28 +3,47 @@
 '''
 Created on Apr 13, 2012
 
-@author: Bartosz Alchimowicz
+@author: Marcin Gumkowski, Wojciech Zamozniewicz
 '''
 
 import seleshot
 
 if __name__ == '__main__':
     s = seleshot.create()
-    xpaths =  [".//*[@id='content']/h1", ".//*[@id='menu']/ul/li[3]/a"]
-    ids = ["submit"]
     url = 'http://www.python.org'
 
-    print s.get_screen(url = url)
-    print s.get_screen(url = url, filename = "screenshot.png")
-    print s.get_screen(url = None, filename = "use_loaded_page.png")
+    i = s.get_screen(url)
+    i.cut_element(id = 'submit').save('cut1.png')
+    i.cut_element(xpath = ".//*[@id='mainnav']/ul/li").save('cut2.png')
 
-    print s.highlight(url = url, xpaths = xpaths, frame = True, color = 'yellow')
+    i.cut_area(height = 100).save('area1.png')
+    i.cut_area(200, 300, 250, 350).save('area2.png')
+    i.cut_area(200, 300, 250, 350).cut_area(60, 60, 50, 50).save('area3.png')
 
-    print s.zoom_in(ids = ids, xpaths = xpaths, zoom_factor = 5)
+    i.draw_frame(id = 'submit', padding = 10, color = 'yellow', size = 5).save('frame1.png')
+    i.draw_frame(coordinates = (500, 500, 40, 50), color = 'green').save('frame2.png')
 
-    s.close()
+    i.cut_area(200, 300, 250, 350).draw_dot(coordinates = (50, 50), padding = (10, 4), color = 'yellow', size = 5).draw_dot(coordinates = (60, 20), padding = (10, 4), color = 'red', size = 10).save(
+        'dot1.png')
 
-    s = seleshot.create()
-    s.driver.get("http://kinyen.pl")
-    print s.get_screen(xpaths=["//div[@id='navigator']/div/a[2]", "/html/body/div/div/div[3]/div[2]/a[2]"])
-    s.close()
+    i.draw_blur(id = 'submit').save('blur1.png')
+    i.draw_blur(xpath = ".//*[@id='mainnav']/ul/li").save('blur2.png')
+
+    i.draw_dot(id = 'touchnav-wrapper', padding = (100, 200), size = 100, position = i.MIDDLE).save("dot2M.png")
+    i.draw_dot(id = 'submit', padding = (10, -10), size = 3, position = i.MIDDLE).save("dot3M.png")
+
+    i.draw_image(id = 'submit', padding = (0, 0), position = i.OUTSIDE | i.BOTTOM, filename = 'cut1.png').save("image1OB.png")
+    i.draw_image(xpath = ".//*[@id='mainnav']/ul/li", padding = (15, 10), position = i.OUTSIDE | i.TOP, filename = 'cut2.png').save("image2OT.png")
+    i.draw_image(id = 'touchnav-wrapper', padding = (15, 10), position = i.OUTSIDE | i.LEFT, filename = 'cut2.png').save("image3OL.png")
+    i.draw_image(coordinates = (100, 200), padding = (0, 0), position = i.OUTSIDE | i.RIGHT, filename = 'cut1.png').save("image4Cor.png")
+
+    i.draw_zoom(id = 'submit', padding = (0, 5), position = i.OUTSIDE | i.BOTTOM, zoom = 0.5).save("zoom1OB.png")
+    i.draw_zoom(xpath = ".//*[@id='mainnav']/ul/li", padding = (15, 10), position = i.OUTSIDE | i.TOP, zoom = 0.5).save("zoom2OT.png")
+    i.draw_zoom(id = 'touchnav-wrapper', padding = (15, 10), position = i.OUTSIDE | i.LEFT, zoom = 0.5).save("zoom3OL.png")
+
+    i.draw_zoom(id = 'submit', padding = (0, 5), position = i.OUTSIDE | i.BOTTOM, zoom = 2).save("zoom4OB.png")
+    i.draw_zoom(xpath = ".//*[@id='mainnav']/ul/li", padding = (15, 10), position = i.OUTSIDE | i.TOP, zoom = 2).save("zoom5OT.png")
+    i.draw_zoom(id = 'touchnav-wrapper', padding = (15, 10), position = i.OUTSIDE | i.LEFT, zoom = 1.5).save("zoom6OL.png")
+    i.close()
+s.close()
+

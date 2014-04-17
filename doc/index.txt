@@ -13,4 +13,4 @@ Contents:
 	_static/usage
 	_static/api
 	_static/tests
-	_static/todo
+

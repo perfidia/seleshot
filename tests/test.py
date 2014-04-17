@@ -1,13 +1,14 @@
 '''
 Created on Oct 31, 2012
 
-@author: perf
+@author: Marcin Gumkowski, Wojciech Zamozniewicz
 '''
-
-import unittest
-import seleshot
-from selenium import webdriver
 import os
+import unittest
+import Image
+from selenium.webdriver.firefox.webdriver import WebDriver
+import seleshot
+
 
 class Test(unittest.TestCase):
     def setUp(self):
@@ -16,131 +17,215 @@ class Test(unittest.TestCase):
     def tearDown(self):
         self.s.close()
 
-    def test_seleshot(self):
-        screenshoot_files = ["www.python.org.png",
-                             "www.python.org-searchbox.png"]
+    def test_get_screen(self):
+        url = 'http://www.python.org'
+        self.i = self.s.get_screen(url)
+        self.assertNotEqual(self.i.driver, None)
+        self.assertNotEqual(self.i.image, None)
+        self.assertEqual(self.i.is_cut(), False)
+        self.assertEqual(isinstance(self.i.driver, WebDriver), True)
+        self.assertEqual(isinstance(self.i.image, Image.Image), True)
 
-        self.s.get_screen("http://www.python.org")
-        self.s.get_screen(url = "http://www.python.org", ids = ["searchbox"])
-        files = os.listdir(os.getcwd())
+        url = 'http:/x/www.pythonnotvalidaddress.org'
+        self.assertRaises(ValueError, self.s.get_screen, url)
+        url = 'www.pythonnotvalidaddress.org'
+        self.assertRaises(ValueError, self.s.get_screen, url)
+        url = 'http//www.pythonnotvalidaddress.org'
+        self.assertRaises(ValueError, self.s.get_screen, url)
 
-        for screen in screenshoot_files:
-            self.assertIn(screen, files)
+    def test_cut_element(self):
+        url = 'http://www.python.org'
+        self.i = self.s.get_screen(url)
 
-    def test_get_xpaths(self):
-        screenshoot_files = ["www.python.org-._[@id='logo'].png",
-                             "www.python.org-._[@id='menu']_ul_li[1].png",
-                             "www.python.org-._[@id='menu']_ul_li[2].png",
-                             "www.python.org-._[@id='menu']_ul_li[3].png",
-                             "www.python.org-._[@id='menu']_ul_li[4].png",
-                             "www.python.org-._[@id='menu']_ul_li[5].png",
-                             "www.python.org-._[@id='menu']_ul_li[6].png",
-                             "www.python.org-._[@id='menu']_ul_li[7].png",
-                             "www.python.org-._[@id='menu']_ul_li[8].png"]
+        self.assertNotEqual(self.i.cut_element("submit"), None)
+        self.assertEqual(self.i.cut_element("submit").is_cut(), True)
 
-        self.s.get_screen(url = "http://www.python.org", xpaths = [".//*[@id='logo']", ".//*[@id='menu']/ul/li"])
-        files = os.listdir(os.getcwd())
+        self.assertRaises(Exception, self.i.cut_element, "wrongid")
 
-        for screen in screenshoot_files:
-            self.assertIn(screen, files)
+        self.assertNotEqual(self.i.cut_element(xpath = ".//*[@id='mainnav']/ul/li"), None)
+        self.assertEqual(self.i.cut_element(xpath = ".//*[@id='mainnav']/ul/li").is_cut(), True)
 
-    def test_get_data(self):
-        d = self.s.get_data('http://www.kinyen.pl/', 'ALL', 'dump.txt')
-        self.assertNotEqual(d, [])
-        l = []
-        # create a list of xpaths of elements without an id
-        for i in d:
-            if len(i) == 5:
-                l.append(i[0])
+        self.assertRaises(Exception, self.i.cut_element, None, ".//*[@id='wrongid']/ul/li")
 
-        self.s.get_screen('http://www.kinyen.pl/', xpaths = l)
+        ii = self.i.cut_element("submit")
+        self.assertRaises(Exception, ii.cut_element, 'submit')
+        self.i.close()
 
-    def test_get_data_conf(self):
-        # website without elements with 'id' property
-        d = self.s.get_data('http://fis.cs.put.poznan.pl/fis/')
-        self.assertEqual(d, [])
-        d = self.s.get_data(url = 'http://fis.cs.put.poznan.pl/fis/', filename = 'dump1.txt')
-        self.assertEqual(d, [])
-        d = self.s.get_data('http://fis.cs.put.poznan.pl/fis/', "ID", 'dump2.txt')
-        self.assertEqual(d, [])
-        d = self.s.get_data('http://fis.cs.put.poznan.pl/fis/', "ALL", 'dump3.txt')
-        self.assertNotEqual(d, [])
+    def test_cut_area(self):
+        url = 'http://www.python.org'
+        self.i = self.s.get_screen(url)
 
-    def test_wrong_id(self):
-        # the page does not have this id
-        screenshoot_files = ["www.python.org.png",
-                             "www.python.org-aasdfasdf.png"]
-        self.s.get_screen(url = "http://www.python.org", ids = ["aasdfasdf"])
-        files = os.listdir(os.getcwd())
-        self.assertIn(screenshoot_files[0], files)
-        self.assertNotIn(screenshoot_files[1], files)
+        d = self.i.cut_area(0, 0, 150, 250)
+        self.assertNotEqual(d, None)
 
-    def test_wrong_xpath(self):
-        # xpath to nothing
-        screenshoot_files = ["www.python.org.png",
-                             "www.python.org-._[@id='menu']_ul_li_span[1].png"]
-        self.s.get_screen(url = "http://www.python.org", xpaths = [".//*[@id='menu']/ul/li/span"])
-        files = os.listdir(os.getcwd())
-        self.assertIn(screenshoot_files[0], files)
-        self.assertNotIn(screenshoot_files[1], files)
+        d = self.i.cut_area(height = 100)
+        self.assertEqual(d.image.size[1], 100)
+        self.assertEqual(d.is_cut(), True)
 
-    def test_get_id_and_xpath(self):
-        screenshoot_files = ["www.python.org.png",
-                             "www.python.org-utility-menu.png",
-                             "www.python.org-left-hand-navigation.png",
-                             "www.python.org-._[@id='left-hand-navigation']_h4[1]_a[1].png",
-                             "www.python.org-._[@id='content']_h1[1].png"]
-        ids = ["utility-menu", "left-hand-navigation"]
-        xpaths = [".//*[@id='content']/h1", ".//*[@id='left-hand-navigation']/h4[1]/a"]
+        d = self.i.cut_area(0, 0, 150, 250)
+        self.assertEqual(d.image.size, (250, 150))
+        self.assertEqual(d.is_cut(), True)
 
-        self.s.get_screen(url = "http://www.python.org", ids = ids, xpaths = xpaths)
-        files = os.listdir(os.getcwd())
+        d = self.i.cut_area(200, 300, 250, 350)
+        self.assertEqual(d.image.size, (350, 250))
+        self.assertEqual(d.is_cut(), True)
+        self.i.close()
 
-        for screen in screenshoot_files:
-            self.assertIn(screen, files)
+    def test_draw_frame(self):
+        url = 'http://www.python.org'
+        self.i = self.s.get_screen(url)
 
-    def test_color_web_element(self):
-        files = os.listdir(os.getcwd())
-        self.s.highlight(url = "http://www.python.org", xpaths = [".//*[@id='intro']/p[1]/strong"], color = 'green')
-        current_files = os.listdir(os.getcwd())
-        self.assertEquals(len(files) + 1, len(current_files))
+        self.assertNotEqual(self.i.draw_frame(id = 'submit', size = 1), None)
+        self.assertNotEqual(self.i.draw_frame(id = 'submit', size = 1).image, None)
+        self.assertEqual(self.i.draw_frame(id = 'submit', size = 1).is_cut(), False)
+        self.assertEqual(self.i.draw_frame(id = 'submit', size = 1).cut_area(2, 2, 1, 1).is_cut(), True)
 
-        self.s.highlight(url = "http://www.python.org", ids = ["submit"], color = 'green')
-        current_files = os.listdir(os.getcwd())
-        self.assertEquals(len(files) + 2, len(current_files))
+        self.assertNotEqual(self.i.draw_frame(xpath = ".//*[@id='mainnav']/ul/li", size = 1), None)
+        self.assertNotEqual(self.i.draw_frame(xpath = ".//*[@id='mainnav']/ul/li", size = 1).image, None)
+        self.assertEqual(self.i.draw_frame(xpath = ".//*[@id='mainnav']/ul/li", size = 1).is_cut(), False)
+        self.assertEqual(self.i.draw_frame(xpath = ".//*[@id='mainnav']/ul/li", size = 1).cut_area(2, 2, 1, 1).is_cut(),
+                         True)
 
-        self.s.highlight(url = "http://www.python.org", xpaths = [".//*[@id='intro']/p[1]/strong"], ids = ["submit"], color = 'green')
-        current_files = os.listdir(os.getcwd())
-        self.assertEquals(len(files) + 3, len(current_files))
+        self.assertNotEqual(self.i.draw_frame(coordinates = (2, 2, 2, 2), size = 1), None)
+        self.assertNotEqual(self.i.draw_frame(coordinates = (2, 2, 2, 2), size = 1).image, None)
+        self.assertEqual(self.i.draw_frame(coordinates = (2, 2, 2, 2), size = 1).is_cut(), False)
+        self.assertEqual(self.i.draw_frame(coordinates = (2, 2, 2, 2), size = 1).cut_area(2, 2, 1, 1).is_cut(), True)
 
-    def test_frame_around_web_element(self):
-        files = os.listdir(os.getcwd())
-        self.s.highlight(url = "http://www.python.org", xpaths = [".//*[@id='menu']/ul/li"], frame = True)
-        current_files = os.listdir(os.getcwd())
-        self.assertEquals(len(files) + 1, len(current_files))
+        self.assertRaises(Exception, self.i.draw_frame, 'wrongid')
+        self.assertRaises(Exception, self.i.draw_frame, None, ".//*[@id='wrongid']/ul/li")
+        self.assertRaises(Exception, self.i.draw_frame)
+        self.assertRaises(ValueError, self.i.draw_frame, None, None, None)
+        self.i.close()
 
-    def test_label_next_to_web_element(self):
-        files = os.listdir(os.getcwd())
-        self.s.highlight(url = "http://www.python.org", ids = ["utility-menu"], frame = True, text = 'EXAMPLE')
-        current_files = os.listdir(os.getcwd())
-        self.assertEquals(len(files) + 1, len(current_files))
+    def test_draw_dot(self):
+        url = 'http://www.python.org'
+        self.i = self.s.get_screen(url)
 
-    def test_color_and_frame(self):
-        files = os.listdir(os.getcwd())
-        self.s.highlight(url = "http://www.python.org", xpaths = [".//*[@id='left-hand-navigation']/h4/a", ".//*[@id='menu']/ul/li/a"], frame = True, color = 'yellow')
-        current_files = os.listdir(os.getcwd())
-        self.assertEquals(len(files) + 1, len(current_files))
+        self.assertNotEqual(self.i.draw_dot(id = 'submit', size = 1), None)
+        self.assertNotEqual(self.i.draw_dot(id = 'submit', size = 1).image, None)
+        self.assertEqual(self.i.draw_dot(id = 'submit', size = 1).is_cut(), False)
+        self.assertEqual(self.i.draw_dot(id = 'submit', size = 1).cut_area(2, 2, 1, 1).is_cut(), True)
 
-    def test_arrow(self):
-        files = os.listdir(os.getcwd())
-        self.s.highlight(url = "http://www.python.org", xpaths = [".//*[@id='content']/h1", ".//*[@id='left-hand-navigation']/h4[1]/a"], arrow = True)
-        current_files = os.listdir(os.getcwd())
-        self.assertEquals(len(files) + 1, len(current_files))
+        self.assertNotEqual(self.i.draw_dot(xpath = ".//*[@id='mainnav']/ul/li", size = 1), None)
+        self.assertNotEqual(self.i.draw_dot(xpath = ".//*[@id='mainnav']/ul/li", size = 1).image, None)
+        self.assertEqual(self.i.draw_dot(xpath = ".//*[@id='mainnav']/ul/li", size = 1).is_cut(), False)
+        self.assertEqual(self.i.draw_dot(xpath = ".//*[@id='mainnav']/ul/li", size = 1).cut_area(2, 2, 1, 1).is_cut(), True)
 
-        files = os.listdir(os.getcwd())
-        self.s.highlight(url = "http://www.python.org", xpaths = [".//*[@id='content']/h1", ".//*[@id='left-hand-navigation']/h4[1]/a"], color = 'yellow', arrow = True)
-        current_files = os.listdir(os.getcwd())
-        self.assertEquals(len(files) + 1, len(current_files))
+        self.assertNotEqual(self.i.draw_dot(coordinates = (2, 2), size = 1), None)
+        self.assertNotEqual(self.i.draw_dot(coordinates = (2, 2), size = 1).image, None)
+        self.assertEqual(self.i.draw_dot(coordinates = (2, 2), size = 1).is_cut(), False)
+        self.assertEqual(self.i.draw_dot(coordinates = (2, 2), size = 1).cut_area(2, 2, 1, 1).is_cut(), True)
+
+        self.assertRaises(Exception, self.i.draw_dot, 'wrongid')
+        self.assertRaises(Exception, self.i.draw_dot, None, ".//*[@id='wrongid']/ul/li")
+        self.assertRaises(Exception, self.i.draw_dot)
+        self.assertRaises(ValueError, self.i.draw_dot, 'submit', None, None, self.i.MIDDLE, 0)
+        self.assertRaises(ValueError, self.i.draw_dot, 'submit', None, None, self.i.MIDDLE, (0, 0, 0))
+        self.assertRaises(ValueError, self.i.draw_dot, 'submit', None, None, self.i.MIDDLE, "wrong")
+        self.i.close()
+
+    def test_draw_zoom(self):
+        url = 'http://www.python.org'
+        self.i = self.s.get_screen(url)
+
+        self.assertNotEqual(self.i.draw_zoom(id = 'submit', zoom = 2), None)
+        self.assertNotEqual(self.i.draw_zoom(id = 'submit', zoom = 2).image, None)
+        self.assertEqual(self.i.draw_zoom(id = 'submit', zoom = 2).is_cut(), False)
+        self.assertEqual(self.i.draw_zoom(id = 'submit', zoom = 2).cut_area(2, 2, 1, 1).is_cut(), True)
+
+        self.assertNotEqual(self.i.draw_zoom(xpath = ".//*[@id='mainnav']/ul/li", zoom = 2), None)
+        self.assertNotEqual(self.i.draw_zoom(xpath = ".//*[@id='mainnav']/ul/li", zoom = 2).image, None)
+        self.assertEqual(self.i.draw_zoom(xpath = ".//*[@id='mainnav']/ul/li", zoom = 2).is_cut(), False)
+        self.assertEqual(self.i.draw_zoom(xpath = ".//*[@id='mainnav']/ul/li", zoom = 2).cut_area(2, 2, 1, 1).is_cut(), True)
+
+        self.assertRaises(Exception, self.i.draw_zoom, 'wrongid')
+        self.assertRaises(Exception, self.i.draw_zoom, None, ".//*[@id='wrongid']/ul/li")
+        self.assertRaises(Exception, self.i.draw_zoom)
+        self.i.close()
+        pass
+
+    def test_draw_image(self):
+        url = 'http://www.python.org'
+        self.i = self.s.get_screen(url)
+        img = Image.new('RGBA', (100, 100))
+        self.assertNotEqual(self.i.draw_image(id = 'submit', image = img), None)
+        self.assertEqual(self.i.draw_image(id = 'submit', image = img).is_cut(), False)
+        self.assertEqual(self.i.draw_image(id = 'submit', image = img).cut_area(2, 2, 1, 1).is_cut(), True)
+
+        self.assertNotEqual(self.i.draw_image(xpath = ".//*[@id='mainnav']/ul/li", image = img), None)
+        self.assertNotEqual(self.i.draw_image(xpath = ".//*[@id='mainnav']/ul/li", image = img).image, None)
+        self.assertEqual(self.i.draw_image(xpath = ".//*[@id='mainnav']/ul/li", image = img).is_cut(), False)
+        self.assertEqual(self.i.draw_image(xpath = ".//*[@id='mainnav']/ul/li", image = img).cut_area(2, 2, 1, 1).is_cut(), True)
+
+        self.assertRaises(Exception, self.i.draw_image, 'wrongid')
+        self.assertRaises(Exception, self.i.draw_image, None, ".//*[@id='wrongid']/ul/li")
+        self.assertRaises(Exception, self.i.draw_image)
+        self.assertRaises(ValueError, self.i.draw_image, None, None, None)
+        self.assertRaises(ValueError, self.i.draw_image, 'submit', None, None, self.i.MIDDLE, 0)
+        self.assertRaises(ValueError, self.i.draw_image, 'submit', None, None, self.i.MIDDLE, (0, 0, 0))
+        self.assertRaises(ValueError, self.i.draw_image, 'submit', None, None, self.i.MIDDLE, "wrong")
+        self.i.close()
+        pass
+
+    def test_draw_blur(self):
+        url = 'http://www.python.org'
+        self.i = self.s.get_screen(url)
+
+        self.assertNotEqual(self.i.draw_blur(id = 'submit').image, None)
+        self.assertEqual(self.i.draw_blur(id = 'submit').is_cut(), False)
+        self.assertEqual(self.i.draw_blur(id = 'submit').cut_area(2, 2, 1, 1).is_cut(), True)
+
+        self.assertNotEqual(self.i.draw_blur(xpath = ".//*[@id='mainnav']/ul/li").image, None)
+        self.assertEqual(self.i.draw_blur(xpath = ".//*[@id='mainnav']/ul/li").is_cut(), False)
+        self.assertEqual(self.i.draw_blur(xpath = ".//*[@id='mainnav']/ul/li").cut_area(2, 2, 1, 1).is_cut(), True)
+
+        self.assertRaises(Exception, self.i.draw_blur)
+        self.assertRaises(ValueError, self.i.draw_blur, 'wrongid')
+        self.assertRaises(ValueError, self.i.draw_blur, None, ".//*[@id='wrongid']/ul/li")
+        self.assertRaises(ValueError, self.i.draw_blur, None, None)
+        self.i.close()
+        pass
+
+    def test_save(self):
+        url = 'http://www.python.org'
+        self.i = self.s.get_screen(url)
+
+        self.i.save('test.png')
+        img = Image.open('test.png', 'r')
+        self.assertNotEqual(img, None)
+        self.assertEqual(isinstance(img, Image.Image), True)
+        del img
+        os.remove('test.png')
+
+        self.i.cut_element("submit").save('test.png')
+        img = Image.open('test.png', 'r')
+        self.assertNotEqual(img, None)
+        self.assertEqual(isinstance(img, Image.Image), True)
+        del img
+        os.remove('test.png')
+
+        self.i.cut_area(200, 300, 250, 350).save('test.png')
+        img = Image.open('test.png', 'r')
+        self.assertNotEqual(img, None)
+        self.assertEqual(img.size, (350, 250))
+        self.assertEqual(isinstance(img, Image.Image), True)
+        del img
+        os.remove('test.png')
+
+        self.i.draw_dot(coordinates = (10, 10), size = 1).save('test.png')
+        img = Image.open('test.png', 'r')
+        self.assertNotEqual(img, None)
+        self.assertEqual(isinstance(img, Image.Image), True)
+        del img
+        os.remove('test.png')
+
+        self.i.draw_frame(id = 'submit').save('test.png')
+        img = Image.open('test.png', 'r')
+        self.assertNotEqual(img, None)
+        self.assertEqual(isinstance(img, Image.Image), True)
+        del img
+        os.remove('test.png')
+        self.i.close()
 
 
 if __name__ == "__main__":

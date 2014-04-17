@@ -8,4 +8,5 @@ Seleshot possibilities:
 
 * Support for taking screenshot(s) of elements with a specified id(s)
 * Support for taking screenshot(s) of elements with a specified xpath(s)
-* Support for remote webdriver
+* Support for taking screenshot(s) of area.
+* Support for taking screenshot(s) with highliting any elements
