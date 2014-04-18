@@ -46,9 +46,9 @@ def create(driver = None):
         if not isinstance(url, basestring):
             raise ValueError("i don't understand your url :(")
 
-        if not (args.url.startswith("http://") or
-                 args.url.startswith("https://") or
-                 args.url.startswith("file://")):
+        if not (url.startswith("http://") or
+                 url.startswith("https://") or
+                 url.startswith("file://")):
             raise ValueError("http protocol is required")
 
         return url
@@ -200,7 +200,9 @@ def create(driver = None):
             :raises: ValueError
             """
             self.__cut = cut
+            self.__filename = None
             self.driver = driver
+
             if image is None:
                 raise ValueError("Image required")
             elif isinstance(image, Image.Image):
@@ -631,11 +633,7 @@ def create(driver = None):
             """
             Close the ImageContainer object
             """
-            try:
-                self.__filename
-            except AttributeError:
-                pass
-            else:
+            if self.__filename:
                 os.remove(self.__filename)
 
             self.driver.close()
