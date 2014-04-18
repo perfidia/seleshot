@@ -6,11 +6,12 @@ Created on May 5, 2011
 
 @author: Radoslaw Palczynski, Grzegorz Bilewski et al.
 '''
-import os
 
+import os
 import sys
 import argparse
 import tempfile
+import string
 import Image
 import ImageDraw
 import ImageFilter
@@ -45,7 +46,9 @@ def create(driver = None):
         if not isinstance(url, basestring):
             raise ValueError("i don't understand your url :(")
 
-        if not url.startswith("http://"):
+        if not (args.url.startswith("http://") or
+                 args.url.startswith("https://") or
+                 args.url.startswith("file://")):
             raise ValueError("http protocol is required")
 
         return url
@@ -663,34 +666,57 @@ def create(driver = None):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description = 'Takes a screen shot of a web page.')
-    parser.add_argument('-u', '--url', dest = "url", help = "url to web page (including http protocol)",
-                        required = True)
-    parser.add_argument('-i', '--ids', dest = "ids",
-                        help = "list of ids on the web page separated by a space character",
-                        nargs = '+')
-    parser.add_argument('-x', '--xpath', dest = "xpath",
-                        help = "list of xpath on the web page separated by a space character", nargs = '+')
-    parser.add_argument('-d', '--path', dest = "path", help = "path to save directory; default as run script",
-                        default = ".")
-    parser.add_argument('-r', '--remoteUrl', dest = "remoteUrl", help = "url of selenium-server-standalone")
-    # parser.add_argument('-f', '--format', dest="format", help="choose a code's output [opt: xml, json]", default=None)
+    parser = argparse.ArgumentParser(
+            description = 'Takes a screen shot of a web page.'
+    )
+    parser.add_argument(
+            '-u', '--url',
+            dest = "url",
+            help = "url to web page (including protocol: http, https or file)",
+            required = True
+    )
+    parser.add_argument(
+            '-f', '--filename',
+            dest = "filename",
+            help = "image destination",
+            required = False,
+    )
+    # parser.add_argument('-i', '--ids', dest = "ids",
+    #    help = "list of ids on the web page separated by a space character",
+    #    nargs = '+')
+    # parser.add_argument('-x', '--xpath', dest = "xpath",
+    #    help = "list of xpath on the web page separated by a space character",
+    #    nargs = '+')
+    # parser.add_argument('-d', '--path', dest = "path",
+    #    help = "path to save directory; default as run script",
+    #    default = ".")
+    # parser.add_argument('-r', '--remoteUrl',
+    #    dest = "remoteUrl", help = "url of selenium-server-standalone")
+    # parser.add_argument('-f', '--format',
+    #    dest="format",
+    #    help="choose a code's output [opt: xml, json]", default=None)
 
     args = parser.parse_args()
 
-    if args.url[:7] != "http://":
-        print sys.argv[0] + ": error: argument -u/--url requires http protocol"
+    if not (args.url.startswith("http://") or
+            args.url.startswith("https://") or
+            args.url.startswith("file://")):
+        print sys.argv[0] + ": error: argument -u/--url requires http, https or file protocol"
         sys.exit(2)
 
-    if args.remoteUrl:
-        s = create(webdriver.Remote(command_executor = args.remoteUrl, desired_capabilities = {
-            "browserName": "firefox",
-            "platform": "ANY",
-        }))
-        s.get(args.url)
-        s.get_screen(args.ids, args.xpath, args.path)
-    else:
-        s = create()
-        s.get_screen(args.url).save("/shot_example.png")
+    if args.filename is None:
+        args.filename = args.url.translate(string.maketrans(':/', '--')) + ".png"
 
+    # if args.remoteUrl:
+    #     s = create(webdriver.Remote(command_executor = args.remoteUrl,
+    #         desired_capabilities = {
+    #             "browserName": "firefox",
+    #             "platform": "ANY",
+    #     }))
+    #     s.get(args.url)
+    #     s.get_screen(args.ids, args.xpath, args.path)
+    # else:
+
+    s = create()
+    s.get_screen(args.url).save(args.filename)
     s.close()
