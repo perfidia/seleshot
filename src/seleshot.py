@@ -203,8 +203,8 @@ def create(driver = None):
             elif isinstance(image, Image.Image):
                 self.image = image
             else:
-                self.filename = image
-                self.image = Image.open(self.filename)
+                self.__filename = image
+                self.image = Image.open(self.__filename)
 
         def cut_element(self, id = None, xpath = None):
             """
@@ -424,9 +424,9 @@ def create(driver = None):
             size_y = image.size[1] / 2
             remainder_x = 0
             remainder_y = 0
-            if image.size[0] % 2 is not 0:
+            if image.size[0] % 2 != 0:
                 remainder_x = 1
-            if image.size[1] % 2 is not 0:
+            if image.size[1] % 2 != 0:
                 remainder_y = 1
             return self.__draw_element(box, size_x, size_y, remainder_x, remainder_y, position, padding, new_image, image, ellipse = False)
 
@@ -628,8 +628,13 @@ def create(driver = None):
             """
             Close the ImageContainer object
             """
-            if len(self.filename) > 0:
-                os.remove(self.filename)
+            try:
+                self.__filename
+            except AttributeError:
+                pass
+            else:
+                os.remove(self.__filename)
+
             self.driver.close()
 
     #########################
