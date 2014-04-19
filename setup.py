@@ -8,7 +8,7 @@ def read(file_name):
 
 setup(
     name = "seleshot",
-    version = '0.0.5',
+    version = '0.0.6',
     author = read('AUTHORS'),
     keywords = 'selenium screenshot testing pyint',
     url = 'https://github.com/perfidia/seleshot',
