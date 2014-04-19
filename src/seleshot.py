@@ -121,7 +121,7 @@ def create(driver = None):
 
     def get_screen(driver):
         """
-        Capture a screen shoot and save it in a temporary file.
+        Capture a screen shoot and load it into an Image.
 
         :param driver: WebDriver
         :type driver: WebDriver
@@ -129,12 +129,14 @@ def create(driver = None):
         :rtype: ImageContainer
         """
 
-        tempfd = tempfile.NamedTemporaryFile(mode = 'w+b', delete = False)
+        tempfd = tempfile.NamedTemporaryFile(mode = 'w+b', delete = True)
+
         driver.save_screenshot(tempfd.name)
-        temp_filename = tempfd.name
+        image = Image.open(tempfd.name)
+
         tempfd.close()
 
-        return ImageContainer(temp_filename, driver)
+        return ImageContainer(image, driver)
 
 
     class ScreenShot(object):
@@ -162,7 +164,7 @@ def create(driver = None):
 
         def close(self):
             """
-            Close
+            Close driver
             """
 
             self.driver.close()
@@ -209,16 +211,19 @@ def create(driver = None):
             :raises: ValueError
             """
             self.__cut = cut
-            self.__filename = None
+            # self.__filename = None
             self.driver = driver
 
-            if image is None:
-                raise ValueError("Image required")
-            elif isinstance(image, Image.Image):
-                self.image = image
-            else:
-                self.__filename = image
-                self.image = Image.open(self.__filename)
+            assert isinstance(image, Image.Image)
+            self.image = image
+
+            # if image is None:
+            #     raise ValueError("Image required")
+            # elif isinstance(image, Image.Image):
+            #     self.image = image
+            # else:
+            #     self.__filename = image
+            #     self.image = Image.open(self.__filename)
 
         def cut_element(self, id = None, xpath = None):
             """
@@ -336,7 +341,7 @@ def create(driver = None):
             :type coordinates: tuple of integers - (x, y, width, height)
             :param padding: padding between frame and element
             :type padding: tuple of integers (x, y)
-            :param color: color of frame
+            :param color: color of a frame (see PIL's documentation)
             :type color: color object or string
             :param size: size of frame (thickness)
             :type size: integer
@@ -408,11 +413,13 @@ def create(driver = None):
             draw = ImageDraw.Draw(new_image)
             if not isinstance(padding, tuple) or len(padding) is not 2:
                 raise ValueError("Padding values are not correct.")
+
             if filename is not None:
                 image = Image.open(filename)
-            else:
-                if image is None:
-                    raise ValueError("Please provide filename of an image.")
+
+            if image is None:
+                raise ValueError("Please provide filename or an image.")
+
             if id is not None and self.__cut is False:
                 my_element = get_web_element_by_id(self.driver, id)
                 if my_element is None:
@@ -638,14 +645,17 @@ def create(driver = None):
                 new_image.paste(image, image_box)
                 return ImageContainer(new_image, self.driver)
 
-        def close(self):
-            """
-            Close the ImageContainer object
-            """
-            if self.__filename:
-                os.remove(self.__filename)
-
-            self.driver.close()
+        # def close(self):
+        #     """
+        #     Close the ImageContainer object
+        #     """
+        #
+        #     print "Imagecontainer.close()"
+        #
+        #     if self.__filename:
+        #         os.remove(self.__filename)
+        #
+        #     self.driver.close()
 
     #########################
     #          body         #

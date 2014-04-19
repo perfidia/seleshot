@@ -117,10 +117,6 @@ if __name__ == '__main__':
     fd.write(fmt(i.is_cut.__doc__))
     fd.write("\n\n")
 
-    fd.write(" " * 4 + ".. function:: close(self):\n\n")
-    fd.write(fmt(i.close.__doc__))
-    fd.write("\n\n")
-
     ##########################################################################
 
     fd.close()

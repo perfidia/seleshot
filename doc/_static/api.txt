@@ -18,7 +18,7 @@ API
 
     .. function:: close(self):
 
-        Close
+        Close driver
 
 .. class:: ImageContainer(object):
 
@@ -106,7 +106,7 @@ API
         :type coordinates: tuple of integers - (x, y, width, height)
         :param padding: padding between frame and element
         :type padding: tuple of integers (x, y)
-        :param color: color of frame
+        :param color: color of a frame (see PIL's documentation)
         :type color: color object or string
         :param size: size of frame (thickness)
         :type size: integer
@@ -189,8 +189,4 @@ API
         
         :returns: possibility to cut
         :rtype: boolean
-
-    .. function:: close(self):
-
-        Close the ImageContainer object
 
