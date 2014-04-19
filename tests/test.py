@@ -6,8 +6,8 @@ Created on Oct 31, 2012
 import os
 import unittest
 import Image
-from selenium.webdriver.firefox.webdriver import WebDriver
 import seleshot
+from selenium.webdriver.firefox.webdriver import WebDriver
 
 
 class Test(unittest.TestCase):
@@ -49,7 +49,6 @@ class Test(unittest.TestCase):
 
         ii = self.i.cut_element("submit")
         self.assertRaises(Exception, ii.cut_element, 'submit')
-        self.i.close()
 
     def test_cut_area(self):
         url = 'http://www.python.org'
@@ -69,7 +68,6 @@ class Test(unittest.TestCase):
         d = self.i.cut_area(200, 300, 250, 350)
         self.assertEqual(d.image.size, (350, 250))
         self.assertEqual(d.is_cut(), True)
-        self.i.close()
 
     def test_draw_frame(self):
         url = 'http://www.python.org'
@@ -95,7 +93,6 @@ class Test(unittest.TestCase):
         self.assertRaises(Exception, self.i.draw_frame, None, ".//*[@id='wrongid']/ul/li")
         self.assertRaises(Exception, self.i.draw_frame)
         self.assertRaises(ValueError, self.i.draw_frame, None, None, None)
-        self.i.close()
 
     def test_draw_dot(self):
         url = 'http://www.python.org'
@@ -122,7 +119,6 @@ class Test(unittest.TestCase):
         self.assertRaises(ValueError, self.i.draw_dot, 'submit', None, None, self.i.MIDDLE, 0)
         self.assertRaises(ValueError, self.i.draw_dot, 'submit', None, None, self.i.MIDDLE, (0, 0, 0))
         self.assertRaises(ValueError, self.i.draw_dot, 'submit', None, None, self.i.MIDDLE, "wrong")
-        self.i.close()
 
     def test_draw_zoom(self):
         url = 'http://www.python.org'
@@ -141,8 +137,6 @@ class Test(unittest.TestCase):
         self.assertRaises(Exception, self.i.draw_zoom, 'wrongid')
         self.assertRaises(Exception, self.i.draw_zoom, None, ".//*[@id='wrongid']/ul/li")
         self.assertRaises(Exception, self.i.draw_zoom)
-        self.i.close()
-        pass
 
     def test_draw_image(self):
         url = 'http://www.python.org'
@@ -164,8 +158,6 @@ class Test(unittest.TestCase):
         self.assertRaises(ValueError, self.i.draw_image, 'submit', None, None, self.i.MIDDLE, 0)
         self.assertRaises(ValueError, self.i.draw_image, 'submit', None, None, self.i.MIDDLE, (0, 0, 0))
         self.assertRaises(ValueError, self.i.draw_image, 'submit', None, None, self.i.MIDDLE, "wrong")
-        self.i.close()
-        pass
 
     def test_draw_blur(self):
         url = 'http://www.python.org'
@@ -183,8 +175,6 @@ class Test(unittest.TestCase):
         self.assertRaises(ValueError, self.i.draw_blur, 'wrongid')
         self.assertRaises(ValueError, self.i.draw_blur, None, ".//*[@id='wrongid']/ul/li")
         self.assertRaises(ValueError, self.i.draw_blur, None, None)
-        self.i.close()
-        pass
 
     def test_save(self):
         url = 'http://www.python.org'
@@ -225,7 +215,6 @@ class Test(unittest.TestCase):
         self.assertEqual(isinstance(img, Image.Image), True)
         del img
         os.remove('test.png')
-        self.i.close()
 
 
 if __name__ == "__main__":
