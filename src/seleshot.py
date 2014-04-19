@@ -378,10 +378,9 @@ def create(driver = None):
                 box[1] = box[1] - padding
                 box[2] = box[2] + padding
                 box[3] = box[3] + padding
-            frame = ((box[0], box[1]), (box[2], box[1]), (box[2], box[3]), (box[0], box[3]), (box[0], box[1]))
-            draw.line(frame, fill = color, width = size)
-            draw.line(((box[0] - size / 2, box[1]), (box[2] + size / 2, box[1])), fill = color, width = size)
-            draw.line(((box[2] + size / 2, box[3]), (box[0] - size / 2, box[3])), fill = color, width = size)
+            centering = size / 2
+            for i in range(size):
+                draw.rectangle([box[0] + centering - i, box[1] + centering - i, box[2] - centering + i, box[3] - centering + i], outline = color)
             return ImageContainer(new_image, self.driver)
 
         def draw_image(self, id = None, xpath = None, coordinates = None, position = MIDDLE, padding = (0, 0), filename = None, image = None):
@@ -469,15 +468,15 @@ def create(driver = None):
             :param padding: padding between dot and element
             :type padding: tuple of integers (x, y)
             :param zoom: zoom size of an element
-            :type zoom: integer
+            :type zoom: float
             :returns: ImageContainer
             :rtype: ImageContainer
             """
             image = self.cut_element(id = id, xpath = xpath).image
             if zoom is None or zoom <= 0:
                 zoom = 1
-            width = int(image.size[0] / zoom)
-            height = int(image.size[1] / zoom)
+            width = int(image.size[0] * zoom)
+            height = int(image.size[1] * zoom)
             image = image.resize((width, height), Image.ANTIALIAS)
             new_image = self.draw_image(id = id, xpath = xpath, coordinates = coordinates, position = position, padding = padding, image = image).image
             return ImageContainer(new_image, self.driver)

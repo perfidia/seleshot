@@ -157,7 +157,7 @@ API
         :param padding: padding between dot and element
         :type padding: tuple of integers (x, y)
         :param zoom: zoom size of an element
-        :type zoom: integer
+        :type zoom: float
         :returns: ImageContainer
         :rtype: ImageContainer
 
