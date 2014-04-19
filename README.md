@@ -22,7 +22,17 @@ Installation
 Getting started
 ---------------
 
-TBD
+You can use SeleShot as a standalone application:
+
+    seleshot.py -u http://www.python.org
+
+or inside your code:
+
+    from seleshot import create
+
+    s = create()
+    s.get_screen(url = "http://www.python.org").save("img.png")
+    s.close()
 
 Authors
 -------
