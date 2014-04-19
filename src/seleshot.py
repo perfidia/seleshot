@@ -24,12 +24,12 @@ from types import MethodType
 def create(driver = None):
     # hiding everything from the world, buahaha ^_^
     """
-    Creates an instance of Seleshot object.
+    Creates an instance of ScreenShot or adds function get_screen to a driver.
 
-    :param driver: Web driver for the site
-    :type driver: WebDriver
-    :returns: Driver of Selenium
-    :rtype: WebDriver
+    :param driver: WebDriver for screen capturing
+    :type driver: WebDriver or None
+    :returns: ScreenShot if None is passed as a driver or WebDriver if WebDriver is passed as a driver
+    :rtype: ScreenShot or WebDriver
     """
 
     def check_url(url):
@@ -121,18 +121,21 @@ def create(driver = None):
 
     def get_screen(driver):
         """
-        Get screen shoot and save it in a temporary file
+        Capture a screen shoot and save it in a temporary file.
 
-        :param driver: Web Driver
+        :param driver: WebDriver
         :type driver: WebDriver
-        :returns: Screen shot
+        :returns: ImageContainer
         :rtype: ImageContainer
         """
+
         tempfd = tempfile.NamedTemporaryFile(mode = 'w+b', delete = False)
         driver.save_screenshot(tempfd.name)
         temp_filename = tempfd.name
         tempfd.close()
+
         return ImageContainer(temp_filename, driver)
+
 
     class ScreenShot(object):
         def __init__(self, driver):
@@ -158,11 +161,17 @@ def create(driver = None):
             return get_screen(self.driver)
 
         def close(self):
+            """
+            Close
+            """
+
             self.driver.close()
 
     class ImageContainer(object):
         """
-        Enumeration of possible positions:
+        Container for an image.
+
+        Possible positions:
 
         * MIDDLE
         * INSIDE
@@ -175,7 +184,7 @@ def create(driver = None):
 
         Example of usage::
 
-        position = Position.OUTSIDE | Position.LEFT
+            position = Position.OUTSIDE | Position.LEFT
         """
 
         MIDDLE = 1
