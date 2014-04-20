@@ -350,7 +350,7 @@ def create(driver = None):
             :raises: ValueError
             """
             color = color if color is not None else "red"
-            size = size if size is not None else 0
+            size = size if size is not None else 1
             new_image = self.image.copy()
             draw = ImageDraw.Draw(new_image)
             if id is not None and self.__cut is False:
