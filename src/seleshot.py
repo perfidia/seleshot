@@ -138,7 +138,6 @@ def create(driver = None):
 
         return ImageContainer(image, driver)
 
-
     class ScreenShot(object):
         def __init__(self, driver):
             self.driver = driver
@@ -378,9 +377,8 @@ def create(driver = None):
                 box[1] = box[1] - padding
                 box[2] = box[2] + padding
                 box[3] = box[3] + padding
-            centering = size / 2
             for i in range(size):
-                draw.rectangle([box[0] + centering - i, box[1] + centering - i, box[2] - centering + i, box[3] - centering + i], outline = color)
+                draw.rectangle([box[0] - i, box[1] - i, box[2] + i, box[3] + i], outline = color)
             return ImageContainer(new_image, self.driver)
 
         def draw_image(self, id = None, xpath = None, coordinates = None, position = MIDDLE, padding = (0, 0), filename = None, image = None):
