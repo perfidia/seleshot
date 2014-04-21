@@ -530,7 +530,6 @@ def create(driver = None):
             return self.__cut
 
         def __draw_element(self, box, size_x, size_y, remainder_x, remainder_y, position, padding, new_image, image, ellipse = False, color = None):
-            # distances from borders
             """
             Draw element - to draw image set ellipse on False.
 
@@ -559,59 +558,46 @@ def create(driver = None):
             :returns: ImageContainer
             :rtype: ImageContainer
             """
+            # distances from borders
             border_x = int((box[2] - box[0]) / 2)
             border_y = int((box[3] - box[1]) / 2)
+
             # central point of element
             x = box[0] + border_x
             y = box[1] + border_y
 
-            inside_left = 0
-            inside_right = 0
-            inside_top = 0
-            inside_bottom = 0
-            outside_left = 0
-            outside_right = 0
-            outside_top = 0
-            outside_bottom = 0
-            border_left = 0
-            border_right = 0
-            border_top = 0
-            border_bottom = 0
+            x_offset = y_offset = 0
 
             if position == ImageContainer.INSIDE | ImageContainer.LEFT:
-                inside_left = -border_x + size_x
+                x_offset = -border_x + size_x
             elif position == ImageContainer.INSIDE | ImageContainer.RIGHT:
-                inside_right = border_x - size_x
+                x_offset = border_x - size_x
             elif position == ImageContainer.INSIDE | ImageContainer.TOP:
-                inside_top = -border_y + size_y
+                y_offset = -border_y + size_y
             elif position == ImageContainer.INSIDE | ImageContainer.BOTTOM:
-                inside_bottom = border_y - size_y
+                y_offset = border_y - size_y
             elif position == ImageContainer.OUTSIDE | ImageContainer.LEFT:
-                outside_left = -border_x - size_x
+                x_offset = -border_x - size_x
             elif position == ImageContainer.OUTSIDE | ImageContainer.RIGHT:
-                outside_right = border_x + size_x
+                x_offset = border_x + size_x
             elif position == ImageContainer.OUTSIDE | ImageContainer.TOP:
-                outside_top = -border_y - size_y
+                y_offset = -border_y - size_y
             elif position == ImageContainer.OUTSIDE | ImageContainer.BOTTOM:
-                outside_bottom = border_y + size_y
+                y_offset = border_y + size_y
             elif position == ImageContainer.BORDER | ImageContainer.LEFT:
-                border_left = -border_x
+                x_offset = -border_x
             elif position == ImageContainer.BORDER | ImageContainer.RIGHT:
-                border_right = border_x
+                x_offset = border_x
             elif position == ImageContainer.BORDER | ImageContainer.TOP:
-                border_top = -border_y
+                y_offset = -border_y
             elif position == ImageContainer.BORDER | ImageContainer.BOTTOM:
-                border_bottom = border_y
+                y_offset = border_y
 
             image_box = (
-                x - size_x + inside_left + inside_right + outside_left + outside_right + border_left + border_right +
-                padding[0] - remainder_x,
-                y - size_y + inside_top + inside_bottom + outside_top + outside_bottom + border_top + border_bottom +
-                padding[1] - remainder_y,
-                x + size_x + inside_left + inside_right + outside_left + outside_right + border_left + border_right +
-                padding[0],
-                y + size_y + inside_top + inside_bottom + outside_top + outside_bottom + border_top + border_bottom +
-                padding[1],)
+                x - size_x + x_offset + padding[0] - remainder_x,
+                y - size_y + y_offset + padding[1] - remainder_y,
+                x + size_x + x_offset + padding[0],
+                y + size_y + y_offset + padding[1])
 
             # add additional space for an image
             if image_box[0] < 0 or image_box[1] < 0 or image_box[2] > new_image.size[0] or image_box[3] > new_image.size[1]:
@@ -628,19 +614,13 @@ def create(driver = None):
                              image_box[1] + difference_top,
                              image_box[2] + difference_left,
                              image_box[3] + difference_top)
-                if ellipse:
-                    draw = ImageDraw.Draw(bigger_image)
-                    draw.ellipse(image_box, fill = color, outline = color)
-                    return ImageContainer(bigger_image, self.driver)
-                bigger_image.paste(image, image_box)
-                return ImageContainer(bigger_image, self.driver)
-            else:
-                if ellipse:
-                    draw = ImageDraw.Draw(new_image)
-                    draw.ellipse(image_box, fill = color, outline = color)
-                    return ImageContainer(new_image, self.driver)
-                new_image.paste(image, image_box)
+                new_image = bigger_image
+            if ellipse:
+                draw = ImageDraw.Draw(new_image)
+                draw.ellipse(image_box, fill = color, outline = color)
                 return ImageContainer(new_image, self.driver)
+            new_image.paste(image, image_box)
+            return ImageContainer(new_image, self.driver)
 
         # def close(self):
         #     """
