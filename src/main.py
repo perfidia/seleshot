@@ -45,7 +45,10 @@ if __name__ == '__main__':
     # Draw a frame by coordinates
     ##########################################################################
 
-    i.draw_frame(coordinates = (500, 500, 40, 50), padding = 10, color = 'green', size = 9).save('frame3.png')
+    for j in xrange(1, 20):
+        i.draw_frame(coordinates = (500, 500, 40, 50), padding = 10, color = 'green', size = j).save('frame3-%03d.png' % j)
+
+    i.draw_frame(coordinates = (500, 500, 40, 50), padding = 10, color = 'green', size = 100).save('frame3-100.png')
 
     ##########################################################################
     # Draw some dots
